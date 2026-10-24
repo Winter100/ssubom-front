@@ -1,0 +1,23 @@
+import type { Metadata } from 'next';
+import Header from '@/components/layout/header';
+import Footer from '@/components/layout/footer';
+import ReviewSearchClient from '@/app/_components/review-search-client';
+
+export const metadata: Metadata = { title: '리뷰 둘러보기 | 써봄' };
+
+const ReviewsPage = () => (
+  <div className='min-h-screen bg-[#fafbf9] font-sans text-[#202a26] selection:bg-emerald-100'>
+    <Header />
+    <main className='mx-auto w-full max-w-4xl px-5 py-10 sm:px-10 sm:py-14'>
+      <h1 id='reviews-list-title' className='text-3xl font-bold tracking-tight'>
+        리뷰 둘러보기
+      </h1>
+      <div className='mt-8'>
+        <ReviewSearchClient />
+      </div>
+    </main>
+    <Footer />
+  </div>
+);
+
+export default ReviewsPage;

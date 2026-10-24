@@ -54,20 +54,51 @@ export const createReviewSearchHref = (
   return `${pathname}?${params.toString()}${hash}`;
 };
 
+type ReviewListUpdates = Partial<
+  Pick<ReviewSearchParams, 'page' | 'categoryId' | 'query'>
+>;
+
+export const createReviewListHref = (
+  pathname: string,
+  search: URLSearchParams,
+  updates: ReviewListUpdates,
+  hash: string,
+): string | null => {
+  const normalized = new URLSearchParams(search);
+  normalized.delete('size');
+  normalized.delete('sort');
+  const href = createReviewSearchHref(pathname, normalized, updates, hash);
+  if (!href) return null;
+  const url = new URL(href, 'http://localhost');
+  url.searchParams.delete('size');
+  url.searchParams.delete('sort');
+  return `${url.pathname}${url.search}${url.hash}`;
+};
+
 export const useReviewSearchParams = () => {
   const search = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const params = parseReviewSearchParams(search);
+  const params: ReviewSearchParams = {
+    ...parseReviewSearchParams(search),
+    size: 10,
+    sort: 'latest',
+  };
 
-  const updateParams = (updates: Partial<ReviewSearchParams>) => {
-    const href = createReviewSearchHref(
+  const updateParams = (
+    updates: ReviewListUpdates,
+    options: { replace?: boolean } = {},
+  ) => {
+    const href = createReviewListHref(
       pathname,
       new URLSearchParams(search.toString()),
       updates,
       window.location.hash,
     );
-    if (href) router.push(href, { scroll: false });
+    if (href) {
+      if (options.replace) router.replace(href, { scroll: false });
+      else router.push(href, { scroll: false });
+    }
   };
 
   return { params, updateParams };

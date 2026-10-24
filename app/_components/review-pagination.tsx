@@ -4,6 +4,31 @@ type ReviewPaginationProps = {
   onPageChange: (page: number) => void;
 };
 
+export const getPaginationItems = (
+  page: number,
+  pageCount: number,
+): (number | `gap-${number}`)[] => {
+  if (pageCount < 1) return [];
+  const pages = new Set([1, pageCount]);
+  for (
+    let current = Math.max(1, page - 2);
+    current <= Math.min(pageCount, page + 2);
+    current++
+  ) {
+    pages.add(current);
+  }
+  const items: (number | `gap-${number}`)[] = [];
+  const sortedPages = [...pages].sort((a, b) => a - b);
+  sortedPages.forEach((current, index) => {
+    const previous = sortedPages[index - 1];
+    if (previous !== undefined && current - previous > 1) {
+      items.push(`gap-${previous}`);
+    }
+    items.push(current);
+  });
+  return items;
+};
+
 const ReviewPagination = ({
   page,
   pageCount,
@@ -11,7 +36,7 @@ const ReviewPagination = ({
 }: ReviewPaginationProps) => (
   <nav
     aria-label='리뷰 페이지 이동'
-    className='mt-6 flex items-center justify-center gap-2'
+    className='mt-6 flex flex-wrap items-center justify-center gap-1 sm:gap-2'
   >
     <button
       type='button'
@@ -22,8 +47,8 @@ const ReviewPagination = ({
     >
       ←
     </button>
-    {Array.from({ length: pageCount }, (_, index) => index + 1).map(
-      (pageNumber) => (
+    {getPaginationItems(page, pageCount).map((pageNumber) =>
+      typeof pageNumber === 'number' ? (
         <button
           type='button'
           key={pageNumber}
@@ -34,6 +59,10 @@ const ReviewPagination = ({
         >
           {pageNumber}
         </button>
+      ) : (
+        <span key={pageNumber} aria-hidden='true' className='px-1 text-xs text-stone-400'>
+          …
+        </span>
       ),
     )}
     <button

@@ -69,8 +69,10 @@ socket.addEventListener('message', (event) => {
   if (response.method !== 'Fetch.requestPaused') return;
   const { requestId, request } = response.params;
   const url = new URL(request.url);
-  if (!url.pathname.endsWith('/reviews')) {
-    void send('Fetch.continueRequest', { requestId });
+  if (!url.pathname.endsWith('/reviews') || !url.searchParams.has('page')) {
+    void send('Fetch.continueRequest', { requestId }).catch((error) => {
+      if (error.message !== 'Invalid InterceptionId.') errors.push(error.message);
+    });
     return;
   }
   requests.push(Object.fromEntries(url.searchParams));

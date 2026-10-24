@@ -20,23 +20,17 @@ const Header = () => {
           className='flex items-center gap-3 text-xs sm:gap-6 sm:text-sm'
         >
           <Link
+            href='/reviews'
+            className='font-medium text-[#23745b] hover:underline hover:underline-offset-4'
+          >
+            리뷰 둘러보기
+          </Link>
+          <Link
             href='/reviews/new'
             className='rounded-full bg-[#23745b] px-4 py-2 text-xs font-medium text-white hover:bg-[#185b46]'
           >
             리뷰 쓰기 ＋
           </Link>
-          {/* <a
-            href='#reviews'
-            className='font-semibold text-[#23745b] transition-colors hover:text-emerald-900'
-          >
-            리뷰 둘러보기
-          </a>
-          <a
-            href='#about'
-            className='hidden text-stone-500 transition-colors hover:text-stone-900 sm:inline'
-          >
-            써봄 이야기 ↗
-          </a> */}
         </nav>
       </div>
     </header>
