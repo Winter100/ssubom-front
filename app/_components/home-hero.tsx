@@ -28,7 +28,7 @@ const HomeHero = () => (
     </div>
     <div
       aria-hidden='true'
-      className='absolute -right-12 top-0 hidden h-full w-[420px] items-center justify-center lg:flex'
+      className='absolute -right-12 top-0 hidden h-full w-105 items-center justify-center lg:flex'
     >
       <div className='absolute size-80 rounded-full border border-[#d3dfd0]' />
       <div className='absolute size-64 rounded-full border border-[#d3dfd0]' />
@@ -50,9 +50,7 @@ const HomeHero = () => (
             </p>
           </div>
         </div>
-        <p className='mt-5 text-sm tracking-[5px] text-[#d7a459]'>
-          ★★★★★
-        </p>
+        <p className='mt-5 text-sm tracking-[5px] text-[#d7a459]'>★★★★★</p>
       </div>
       <div className='absolute right-20 bottom-10 -rotate-6 rounded-full bg-[#dbe6d5] px-4 py-2 text-xs text-[#61735f]'>
         더 나은 선택으로 🌱

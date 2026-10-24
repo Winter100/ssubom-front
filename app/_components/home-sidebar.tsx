@@ -57,11 +57,6 @@ const HomeSidebar = () => (
         당신의 일상에도 좋은 발견이 있기를.
       </p>
     </section>
-    <p className='px-1 text-[10px] leading-5 text-stone-400'>
-      현재 표시된 리뷰는 화면 구성을 위한 예시입니다.
-      <br />
-      제품 이미지는 설명용 일러스트입니다.
-    </p>
   </aside>
 );
 
