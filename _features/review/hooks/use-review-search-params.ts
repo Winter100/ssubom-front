@@ -1,14 +1,7 @@
 'use client';
 
+import { ReviewSearchParams } from '@/_types/review';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-
-export type ReviewSearchParams = {
-  page: number;
-  size: number;
-  categoryId?: number;
-  query?: string;
-  sort: 'latest' | 'rating';
-};
 
 const positiveInteger = (value: string | null): number | undefined => {
   if (!value || !/^\d+$/.test(value)) return undefined;

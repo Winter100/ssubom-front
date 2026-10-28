@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useReviews } from '../_hooks/use-reviews';
-import { useCategories } from '../_hooks/use-categories';
-import { useReviewSearchParams } from '../_hooks/use-review-search-params';
+import { useCategories } from '../hooks/use-categories';
+import { useReviewSearchParams } from '../hooks/use-review-search-params';
 import ReviewCard from './review-card';
-import ReviewPagination from './review-pagination';
+import ReviewPagination from './list/review-pagination';
 import ReviewsQueryBoundary from './reviews-query-boundary';
-import ReviewListSkeleton from './review-list-skeleton';
-import type { ReviewSearchParams } from '../_hooks/use-review-search-params';
+import ReviewListSkeleton from './list/review-list-skeleton';
+import { ReviewSearchParams } from '../../../_types/review';
+import { useReviews } from '../hooks/use-review';
 
 type ReviewSearchResultsProps = {
   params: ReviewSearchParams;
@@ -38,8 +38,8 @@ const ReviewSearchResults = ({
     <>
       <div aria-live='polite' aria-atomic='true'>
         <p className='sr-only'>
-          검색 결과 {data.totalElements}개, {data.totalPages === 0 ? 0 : params.page} /{' '}
-          {data.totalPages} 페이지
+          검색 결과 {data.totalElements}개,{' '}
+          {data.totalPages === 0 ? 0 : params.page} / {data.totalPages} 페이지
         </p>
         <div className='divide-y divide-stone-200/70'>
           {data.content.map((review) => (
@@ -105,12 +105,7 @@ const ReviewSearchFeed = () => {
     };
   }, [query]);
 
-  const {
-    data: categories = [],
-    isLoading: categoriesLoading,
-    isError: categoriesError,
-    refetch: refetchCategories,
-  } = useCategories();
+  const { data: categories = [] } = useCategories();
 
   return (
     <section
@@ -127,7 +122,9 @@ const ReviewSearchFeed = () => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
           const value = form.get('query');
-          updateParams({ query: typeof value === 'string' ? value : undefined });
+          updateParams({
+            query: typeof value === 'string' ? value : undefined,
+          });
         }}
       >
         <label className='relative block min-w-0 flex-1'>
@@ -165,7 +162,7 @@ const ReviewSearchFeed = () => {
           >
             전체
           </button>
-          {categories.map((item) => (
+          {/* {categories.map((item) => (
             <button
               key={item.id}
               type='button'
@@ -175,31 +172,9 @@ const ReviewSearchFeed = () => {
             >
               {item.category}
             </button>
-          ))}
+          ))} */}
         </div>
       </div>
-
-      {categoriesLoading ? (
-        <p role='status' className='mt-3 text-xs text-stone-400'>
-          카테고리를 불러오는 중입니다.
-        </p>
-      ) : categoriesError ? (
-        <div role='alert' className='mt-3 text-xs text-stone-500'>
-          카테고리를 불러오지 못했습니다.
-          <button
-            type='button'
-            onClick={() => void refetchCategories()}
-            className='ml-2 cursor-pointer text-[#23745b] underline underline-offset-4'
-          >
-            카테고리 다시 시도
-          </button>
-        </div>
-      ) : categories.length === 0 ? (
-        <p role='status' className='mt-3 text-xs text-stone-400'>
-          등록된 카테고리가 없습니다.
-        </p>
-      ) : null}
-
       <ReviewsQueryBoundary
         skeletonCount={size}
         resetKeys={[page, size, categoryId, query, sort]}
@@ -207,7 +182,9 @@ const ReviewSearchFeed = () => {
         <ReviewSearchResults
           params={params}
           onPageChange={(nextPage) => updateParams({ page: nextPage })}
-          onReset={() => updateParams({ query: undefined, categoryId: undefined, page: 1 })}
+          onReset={() =>
+            updateParams({ query: undefined, categoryId: undefined, page: 1 })
+          }
           onPageCorrection={(page) => updateParams({ page }, { replace: true })}
         />
       </ReviewsQueryBoundary>

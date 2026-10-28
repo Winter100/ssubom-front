@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import ReviewSearchClient from '@/app/_components/review-search-client';
+import ReviewSearchClient from '@/_features/review/components/review-search-client';
 
 export const metadata: Metadata = { title: '리뷰 둘러보기 | 써봄' };
 
