@@ -1,5 +1,5 @@
-import ReviewFeedClient from './review-feed-client';
 import Link from 'next/link';
+import ReviewFeedClient from './review-feed-client';
 
 const ReviewFeed = () => (
   <section

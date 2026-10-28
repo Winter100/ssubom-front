@@ -1,6 +1,6 @@
-import HomeHero from './_components/home-hero';
-import HomeSidebar from './_components/home-sidebar';
-import ReviewFeed from './_components/review-feed';
+import HomeHero from '../_features/home/components/home-hero';
+import HomeSidebar from '../_features/home/components/home-sidebar';
+import ReviewFeed from '../_features/home/components/review-feed';
 
 const Home = () => (
   <div className='min-h-screen bg-[#fafbf9] font-sans text-[#202a26] selection:bg-emerald-100'>

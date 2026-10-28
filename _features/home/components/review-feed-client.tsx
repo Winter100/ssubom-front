@@ -1,8 +1,8 @@
 'use client';
 
+import ReviewListSkeleton from '@/_features/review/components/list/review-list-skeleton';
+import ReviewsQueryBoundary from '@/_features/review/components/reviews-query-boundary';
 import dynamic from 'next/dynamic';
-import ReviewListSkeleton from './review-list-skeleton';
-import ReviewsQueryBoundary from './reviews-query-boundary';
 
 const ReviewFeedList = dynamic(() => import('./review-feed-list'), {
   ssr: false,
