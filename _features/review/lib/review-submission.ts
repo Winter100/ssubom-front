@@ -1,0 +1,121 @@
+import type { ReviewData, ReviewCreateRequest } from './review-types';
+import { getImageSources, replaceImageSources } from './local-images';
+import { hasRequiredReviewFields } from './review-validation';
+import {
+  countBodyImages,
+  MAX_BODY_IMAGES,
+  MAX_VERDICT_LENGTH,
+} from './review-limits';
+import {
+  issueReviewImageUrls,
+  uploadReviewImage,
+  postReview,
+} from './review-api';
+
+type SubmissionImage = {
+  clientId: string;
+  source: string;
+  file: File;
+};
+
+type ReviewSubmission = Omit<ReviewData, 'image'> & {
+  image: SubmissionImage | null;
+  bodyImages: SubmissionImage[];
+};
+
+export const createReview = async (
+  review: ReviewData,
+  files: ReadonlyMap<string, File>,
+): Promise<void> => {
+  // 필수 항목 체크
+  if (!hasRequiredReviewFields(review)) {
+    throw new Error('필수 항목과 평점을 확인해 주세요.');
+  }
+  if (countBodyImages(review.body) > MAX_BODY_IMAGES) {
+    throw new Error(`본문 이미지는 최대 ${MAX_BODY_IMAGES}개까지 추가할 수 있습니다.`);
+  }
+  if (review.verdict.length > MAX_VERDICT_LENGTH) {
+    throw new Error(`추천 문구는 최대 ${MAX_VERDICT_LENGTH}자까지 입력할 수 있습니다.`);
+  }
+  const { category, ...fields } = review;
+  if (!category) throw new Error('카테고리를 선택해 주세요.');
+
+  const getSubmissionImage = (source: string): SubmissionImage | null => {
+    const file = files.get(source);
+    if (source.startsWith('blob:') && !file) {
+      throw new Error('이미지 원본을 찾을 수 없습니다.');
+    }
+    return file ? { clientId: crypto.randomUUID(), source, file } : null;
+  };
+  const submission: ReviewSubmission = {
+    ...review,
+    image: getSubmissionImage(review.image),
+    bodyImages: getImageSources(review.body).flatMap((source) => {
+      const image = getSubmissionImage(source);
+      return image ? [image] : [];
+    }),
+  };
+
+  const images = [
+    ...(submission.image ? [submission.image] : []),
+    ...submission.bodyImages,
+  ];
+
+  // presigned urls 발급
+  const issuedUrls = images.length
+    ? await issueReviewImageUrls(
+        images.map(({ clientId, file }) => ({
+          clientId,
+          name: file.name,
+          contentType: file.type,
+          fileSize: file.size,
+        })),
+      )
+    : [];
+
+  if (images.length !== issuedUrls.length) {
+    throw new Error('발급받지 못한 키가 존재합니다.');
+  }
+  const urlsByClientId = new Map(
+    issuedUrls.map((image) => [image.clientId, image]),
+  );
+  const uploads = images.map((image) => {
+    const issued = urlsByClientId.get(image.clientId);
+    if (!issued) {
+      throw new Error(`Presigned URL을 찾을 수 없습니다: ${image.file.name}`);
+    }
+    return { ...image, key: issued.key, url: issued.url };
+  });
+
+  // 발급받은 url에 실제 이미지 업로드
+  const uploadedSources = new Map<string, string>(
+    await Promise.all(
+      uploads.map(
+        async ({ source, file, key, url }): Promise<[string, string]> => {
+          await uploadReviewImage(url, file);
+          return [source, key];
+        },
+      ),
+    ),
+  );
+
+  // 기존 이미지 src -> key로 교체 후 POST
+
+  const { image, ...rest } = fields;
+
+  const reviewPayload: ReviewCreateRequest = {
+    ...rest,
+    pros: rest.pros.map((item) => item.trim()),
+    cons: rest.cons.map((item) => item.trim()),
+    categoryId: category.id,
+    mainImageKey: uploadedSources.get(image) ?? null,
+    subImageKeys: uploads
+      .filter(({ clientId }) => clientId !== submission.image?.clientId)
+      .map(({ key }) => key),
+    body: replaceImageSources(submission.body, uploadedSources),
+  };
+
+  console.log(reviewPayload);
+
+  await postReview(reviewPayload);
+};
