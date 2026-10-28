@@ -37,7 +37,7 @@ const PointFields = ({
                 )
               }
               placeholder='한 가지씩 간단하게 적어주세요'
-              className='w-full rounded-lg border border-white bg-white/80 px-3 py-3 text-xs outline-emerald-700'
+              className={`w-full rounded-xl border bg-white/40 px-3.5 py-3 text-sm leading-6 outline-offset-2 ${tone === 'green' ? 'border-[#d7e4d4] text-[#405b49] placeholder:text-[#637b69] outline-[#36765d]' : 'border-[#e3dac9] text-[#68583e] placeholder:text-[#827156] outline-[#8f7953]'}`}
             />
           </label>
           <button

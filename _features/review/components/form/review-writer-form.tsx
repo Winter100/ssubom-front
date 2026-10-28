@@ -2,18 +2,18 @@
 
 import { useState } from 'react';
 import type { Editor } from '@tiptap/react';
-import type { ReviewFields } from '../_lib/review-types';
-import { hasRequiredReviewFields } from '../_lib/review-validation';
-import { MAX_VERDICT_LENGTH } from '../_lib/review-limits';
+import type { ReviewFields } from '../../lib/review-types';
+import { hasRequiredReviewFields } from '../../lib/review-validation';
+import { MAX_VERDICT_LENGTH } from '../../lib/review-limits';
 import type {
   ChangeReviewField,
   HandleReviewImage,
-} from '../_hooks/use-review-writer';
+} from '../../hooks/use-review-writer';
 import ReviewBasicsFields from './review-basics-fields';
 import ReviewCoverImage from './review-cover-image';
 import ReviewBodyEditor from './review-body-editor';
 import PointFields from './point-fields';
-import type { CategoryType } from '@/app/_types/review';
+import type { CategoryType } from '@/_types/review';
 
 const inputClass =
   'mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#23745b] focus:ring-2 focus:ring-emerald-100';
@@ -89,7 +89,7 @@ const ReviewWriterForm = ({
             tone='sand'
           />
         </div>
-        <section className='border-l-2 border-[#9eaf8e] pl-6'>
+        <section className='rounded-2xl border border-stone-200 bg-white p-5 sm:p-7'>
           <p className='text-[10px] font-semibold tracking-widest text-[#8b9a80]'>
             MY FINAL THOUGHTS
           </p>
@@ -139,21 +139,21 @@ const ReviewWriterForm = ({
             >
               임시 저장
             </button>
-            <button
+            {/* <button
               type='button'
               disabled={!editor || busy}
               // onClick={togglePreview}
               className='cursor-pointer rounded-full bg-[#23745b] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#185b46] disabled:opacity-40'
             >
-              {/* {preview ? '← 이어서 작성' : '미리보기 ↗'} */}
-            </button>
+              {preview ? '← 이어서 작성' : '미리보기 ↗'}
+            </button> */}
             <button
               type='button'
               onClick={handleSubmit}
               disabled={busy}
               className='cursor-pointer rounded-full bg-[#23745b] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#185b46] disabled:opacity-40'
             >
-              {isSubmitting ? '전송 중…' : '전송'}
+              {isSubmitting ? '등록 중…' : '등록'}
             </button>
           </div>
         </div>

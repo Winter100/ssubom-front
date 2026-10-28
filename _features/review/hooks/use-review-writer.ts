@@ -2,18 +2,18 @@
 
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useEditor } from '@tiptap/react';
-import { createExtensions, richTextClasses } from '../_lib/editor-config';
-import { createLocalImage } from '../_lib/local-images';
-import { countBodyImages, MAX_BODY_IMAGES } from '../_lib/review-limits';
+import { createExtensions, richTextClasses } from '../lib/editor-config';
+import { createLocalImage } from '../lib/local-images';
+import { countBodyImages, MAX_BODY_IMAGES } from '../lib/review-limits';
 import {
   emptyFields,
   type ReviewFields,
   type ReviewData,
-} from '../_lib/review-types';
-import { hasRequiredReviewFields } from '../_lib/review-validation';
-import { useCreateReview } from './use-create-review';
-import { restoreReviewDraft, saveReviewDraft } from '../_lib/draft-storage';
-import { getAuthErrorMessage } from '@/app/_lib/auth-client';
+} from '../lib/review-types';
+import { hasRequiredReviewFields } from '../lib/review-validation';
+import { restoreReviewDraft, saveReviewDraft } from '../lib/draft-storage';
+import { useCreateReview } from './use-review';
+import { getAuthErrorMessage } from '@/_lib/auth-client';
 
 export type ChangeReviewField = <K extends keyof ReviewFields>(
   key: K,
@@ -98,8 +98,13 @@ export const useReviewWriter = () => {
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = '';
     if (!file || !editor || isSubmitting) return;
-    if (target === 'body' && countBodyImages(editor.getJSON()) >= MAX_BODY_IMAGES) {
-      setError(`본문 이미지는 최대 ${MAX_BODY_IMAGES}개까지 추가할 수 있습니다.`);
+    if (
+      target === 'body' &&
+      countBodyImages(editor.getJSON()) >= MAX_BODY_IMAGES
+    ) {
+      setError(
+        `본문 이미지는 최대 ${MAX_BODY_IMAGES}개까지 추가할 수 있습니다.`,
+      );
       return;
     }
     setReadingImage(true);

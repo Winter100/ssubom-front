@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useReviewWriter } from '../_hooks/use-review-writer';
-import ReviewPreview from './review-preview';
+import { useReviewWriter } from '../../hooks/use-review-writer';
+import ReviewPreview from '../review-preview';
 import ReviewWriterForm from './review-writer-form';
-import { useCategories } from '@/app/_hooks/use-categories';
+import { useCategories } from '@/_features/review/hooks/use-categories';
 
 // <div className='flex items-center gap-2'>
 //   <button

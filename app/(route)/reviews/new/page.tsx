@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import ReviewWriter from './_components/review-writer';
+import ReviewWriter from '../../../../_features/review/components/form/review-writer';
 
 const NewReviewPage = () => (
   <Suspense

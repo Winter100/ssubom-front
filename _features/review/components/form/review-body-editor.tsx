@@ -2,7 +2,7 @@
 
 import { useRef, type ChangeEvent } from 'react';
 import { EditorContent, useEditorState, type Editor } from '@tiptap/react';
-import { countBodyImages, MAX_BODY_IMAGES } from '../_lib/review-limits';
+import { countBodyImages, MAX_BODY_IMAGES } from '../../lib/review-limits';
 import EditorToolbar from './editor-toolbar';
 import './review-body-editor.css';
 
@@ -27,7 +27,7 @@ const ReviewBodyEditor = ({
   const imageDisabled = readingImage || imageCount >= MAX_BODY_IMAGES;
 
   return (
-    <section>
+    <section className='rounded-2xl border border-stone-200 bg-white p-5 sm:p-7'>
       <p className='text-[10px] font-semibold tracking-[0.16em] text-[#7a8e78]'>
         03 · YOUR HONEST STORY
       </p>
