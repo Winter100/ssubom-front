@@ -1,4 +1,4 @@
-import { project } from '@/app/_constant/web';
+import { project } from '@/_constant/web';
 
 const Footer = () => {
   return (

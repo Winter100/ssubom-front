@@ -1,6 +1,6 @@
 'use client';
 import { useMutation } from '@tanstack/react-query';
-import { useAuth } from '../_components/auth-provider';
+import { useAuth } from '../_features/login/components/auth-provider';
 import type { LoginInput } from '../_types/auth';
 
 export const useLogin = () => {

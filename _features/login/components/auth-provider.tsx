@@ -9,15 +9,15 @@ import {
   type ReactNode,
 } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
-import { apiPathAuth } from '../_constant/api-path';
 import {
   createAuthClient,
   getAuthErrorMessage,
   isUnauthorized,
   type AuthClient,
-} from '../_lib/auth-client';
-import type { AuthStatus, User } from '../_types/auth';
+} from '../../../_lib/auth-client';
+import type { AuthStatus, User } from '../../../_types/auth';
+import { apiPath } from '../../../_constant/api-path';
+import { api } from '@/_lib/api/api';
 
 export const currentUserKey = ['auth', 'currentUser'] as const;
 type AuthContextValue = {
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [error, setError] = useState('');
   const [client] = useState(() =>
-    createAuthClient(api, apiPathAuth, () => {
+    createAuthClient(api, apiPath, () => {
       setStatus('anonymous');
       queryClient.removeQueries({ queryKey: ['auth'] });
     }),

@@ -1,4 +1,4 @@
-﻿import AuthForm from '@/app/_components/auth-form';
+﻿import AuthForm from '@/_features/login/components/auth-form';
 import { Suspense } from 'react';
 
 type LoginPageProps = { searchParams: Promise<{ registered?: string }> };

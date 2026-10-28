@@ -1,7 +1,7 @@
 'use client';
 
-import { project } from '@/app/_constant/web';
-import { useAuth } from '@/app/_components/auth-provider';
+import { project } from '@/_constant/web';
+import { useAuth } from '@/_features/login/components/auth-provider';
 import Link from 'next/link';
 
 const Header = () => {
@@ -29,7 +29,7 @@ const Header = () => {
           >
             리뷰 둘러보기
           </Link>
-          {status === 'authenticated' && user && (
+          {/* {status === 'authenticated' && user && (
             <Link
               href='/mypage'
               aria-label={`${user.nickname}님 마이페이지로 이동`}
@@ -38,8 +38,8 @@ const Header = () => {
             >
               {user.nickname}
             </Link>
-          )}
-          {status === 'loading' ? (
+          )} */}
+          {/* {status === 'loading' ? (
             <span role='status' className='px-4 py-2 text-stone-500'>
               확인 중…
             </span>
@@ -50,7 +50,13 @@ const Header = () => {
             >
               {status === 'authenticated' ? '리뷰 쓰기 ＋' : '로그인'}
             </Link>
-          )}
+          )} */}
+          <Link
+            href={'/reviews/new'}
+            className='rounded-full bg-[#23745b] px-4 py-2 text-xs font-medium text-white hover:bg-[#185b46]'
+          >
+            {'리뷰 쓰기 ＋'}
+          </Link>
         </nav>
       </div>
       {/* {status === 'error' && (

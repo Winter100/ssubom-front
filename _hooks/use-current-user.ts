@@ -1,6 +1,9 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
-import { currentUserKey, useAuth } from '../_components/auth-provider';
+import {
+  currentUserKey,
+  useAuth,
+} from '../_features/login/components/auth-provider';
 
 export const useCurrentUser = () => {
   const { client, status } = useAuth();
