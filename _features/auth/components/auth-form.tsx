@@ -2,9 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useRef, useState, type FormEvent } from 'react';
-import { useLogin } from '../../../_hooks/use-login';
-import { useSignup } from '../../../_hooks/use-signup';
+import { SyntheticEvent, useRef, useState } from 'react';
 import { getAuthErrorMessage } from '../../../_lib/auth-client';
 import {
   validateAuthField,
@@ -13,6 +11,7 @@ import {
   type AuthFields,
 } from '../../../_lib/auth-validation';
 import { project } from '../../../_constant/web';
+import { useLogin, useSignup } from '../hooks/use-auth';
 
 const fieldDefinitions: {
   name: AuthField;
@@ -73,7 +72,7 @@ const AuthForm = ({
     });
   };
 
-  const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+  const submit = async (event: SyntheticEvent): Promise<void> => {
     event.preventDefault();
     if (submitting.current) return;
     const nextErrors: AuthErrors = {};

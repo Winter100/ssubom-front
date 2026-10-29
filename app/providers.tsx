@@ -6,7 +6,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { AuthProvider } from '../_features/login/components/auth-provider';
+import { AuthSession } from '../_features/auth/components/auth-session';
 
 const createQueryClient = (): QueryClient =>
   new QueryClient({
@@ -25,7 +25,8 @@ const getQueryClient = (): QueryClient => {
 
 const Providers = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={getQueryClient()}>
-    <AuthProvider>{children}</AuthProvider>
+    <AuthSession />
+    {children}
   </QueryClientProvider>
 );
 

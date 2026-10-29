@@ -3,28 +3,24 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { useAuth } from '@/_features/login/components/auth-provider';
-import { useCurrentUser } from '@/_hooks/use-current-user';
+import { useMe } from '@/_features/auth/hooks/use-auth';
 import { getAuthErrorMessage } from '@/_lib/auth-client';
 
 const MyPageContent = () => {
-  const { status, user, error: authError } = useAuth();
-  const { error, isFetching } = useCurrentUser();
+  const { data: user, error, isPending, isFetching } = useMe();
+
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'anonymous') router.replace('/login');
-  }, [status, router]);
+    if (!isPending && !error && user === null) router.replace('/login');
+  }, [isPending, error, user, router]);
 
-  const message =
-    status === 'error'
-      ? authError
-      : error
-        ? getAuthErrorMessage(
-            error,
-            '내 정보를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.',
-          )
-        : '';
+  const message = error
+    ? getAuthErrorMessage(
+        error,
+        '내 정보를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.',
+      )
+    : '';
 
   return (
     <main className='mx-auto w-full max-w-2xl flex-1 px-5 py-12 sm:py-20'>
@@ -38,12 +34,12 @@ const MyPageContent = () => {
         <h1 id='mypage-title' className='text-3xl font-bold tracking-tight'>
           마이페이지
         </h1>
-        {status === 'loading' && (
+        {isPending && (
           <p role='status' className='mt-6 text-sm text-stone-500'>
             로그인 상태를 확인하고 있습니다…
           </p>
         )}
-        {status === 'anonymous' && (
+        {!isPending && !error && user === null && (
           <p role='status' className='mt-6 text-sm text-stone-500'>
             로그인 페이지로 이동하고 있습니다…
           </p>
@@ -54,7 +50,7 @@ const MyPageContent = () => {
             className='mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-700'
           >
             <p>{message}</p>
-            {status === 'error' && (
+            {error && (
               <Link
                 href='/login'
                 className='mt-3 inline-block font-semibold underline underline-offset-4'
@@ -64,7 +60,7 @@ const MyPageContent = () => {
             )}
           </div>
         )}
-        {status === 'authenticated' && user && (
+        {user && (
           <>
             <p className='mt-3 text-sm text-stone-500'>
               내 계정 정보를 확인해 보세요.

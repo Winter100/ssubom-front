@@ -4,7 +4,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { test } from 'node:test';
 import ts from 'typescript';
-import axios from 'axios';
+
 
 const dependency = createRequire(import.meta.url);
 const load = (file, overrides) => {
@@ -30,7 +30,7 @@ const mount = (mode, respond = async () => {}) => {
   const calls = [];
   const routes = [];
   const mutation = { isPending: false, reset: () => {}, mutateAsync: async (input) => { calls.push(input); await respond(); } };
-  const Form = load('app/_components/auth-form.tsx', {
+  const Form = load('_features/auth/components/auth-form.tsx', {
     react: {
       useRef: () => ref,
       useState: (initial) => {
@@ -41,8 +41,8 @@ const mount = (mode, respond = async () => {}) => {
     },
     'next/link': { __esModule: true, default: 'a' },
     'next/navigation': { useRouter: () => ({ replace: (route) => routes.push(route) }) },
-    '../_hooks/use-login': { useLogin: () => mutation },
-    '../_hooks/use-signup': { useSignup: () => mutation },
+    '../hooks/use-auth': { useLogin: () => mutation, useSignup: () => mutation },
+
   }).default;
   const render = () => { cursor = 0; return Form({ mode }); };
   const find = (node, match) => {
@@ -102,127 +102,24 @@ test('failure preserves input, shows message, and allows another submission', as
   assert.equal(form.routes.length, 0);
 });
 
-const mountProvider = (http) => {
-  const states = [];
-  let cursor = 0;
-  let restore;
-  let initialRender = true;
-  const revision = { current: 0 };
-  const cache = new Map();
-  const queryClient = {
-    setQueryData: (key, value) => cache.set(JSON.stringify(key), value),
-    removeQueries: () => cache.clear(),
-  };
-  const { AuthProvider } = load('app/_components/auth-provider.tsx', {
-    react: {
-      createContext: () => ({ Provider: 'provider' }),
-      useRef: () => revision,
-      useEffect: (effect) => { if (initialRender) restore = effect; },
-      useState: (initial) => {
-        const index = cursor++;
-        if (!(index in states)) states[index] = typeof initial === 'function' ? initial() : initial;
-        return [states[index], (value) => { states[index] = value; }];
-      },
-    },
-    '@tanstack/react-query': {
-      useQueryClient: () => queryClient,
-      useQuery: ({ queryKey }) => ({ data: cache.get(JSON.stringify(queryKey)) }),
-    },
-    '@/lib/api': { api: http },
-    '../_constant/api-path': { apiPathAuth: { login: '/login', signup: '/signup', refresh: '/refresh', currentUser: '/me' } },
-  });
-  const render = () => { cursor = 0; return AuthProvider({ children: null }).props.value; };
-  render();
-  initialRender = false;
-  return { render, cache, restore: () => restore() };
-};
-
-test('provider restores user/cache and header changes from loading to write link', async () => {
-  const provider = mountProvider({
-    post: async () => ({ data: { accessToken: 'restored' } }),
-    request: async () => ({ data: { id: 2, email: 'reader@example.com', nickname: '독자' } }),
-  });
-  const Header = load('components/layout/header.tsx', {
-    '@/app/_constant/web': { project: { title: '써봄', header_description: '' } },
-    '@/app/_components/auth-provider': { useAuth: () => provider.render() },
-    'next/link': { __esModule: true, default: 'a' },
-  }).default;
-  assert.equal(provider.render().status, 'loading');
-  assert.ok(JSON.stringify(Header()).includes('확인 중'));
-  const cleanup = provider.restore();
-  await new Promise((resolve) => setImmediate(resolve));
-  assert.equal(provider.render().status, 'authenticated');
-  assert.deepEqual(provider.render().user, { id: 2, email: 'reader@example.com', nickname: '독자' });
-  assert.deepEqual(provider.cache.get('["auth","currentUser"]'), { id: 2, email: 'reader@example.com', nickname: '독자' });
-  assert.ok(JSON.stringify(Header()).includes('/reviews/new'));
-  assert.ok(JSON.stringify(Header()).includes('/mypage'));
-  assert.ok(JSON.stringify(Header()).includes('독자님 마이페이지로 이동'));
-  provider.cache.set('["auth","currentUser"]', { id: 2, email: 'reader@example.com', nickname: '바뀐닉네임' });
-  assert.equal(provider.render().user.nickname, '바뀐닉네임');
-  assert.ok(JSON.stringify(Header()).includes('바뀐닉네임님 마이페이지로 이동'));
-  cleanup();
-});
-
-test('provider login updates user immediately and refresh 401 clears user/cache', async () => {
-  let unauthorized = false;
-  const provider = mountProvider({
-    post: async () => {
-      if (unauthorized) throw new axios.AxiosError('expired', undefined, undefined, undefined, { status: 401 });
-      return { data: { member: { id: 3, email: 'reader@example.com', nickname: '회원' }, accessToken: 'login-token' } };
-    },
-  });
-  const response = await provider.render().client.login({ email: 'a@b.com', password: '12345678' });
-  const { useLogin } = load('app/_hooks/use-login.ts', {
-    '@tanstack/react-query': { useMutation: (options) => options },
-    '../_components/auth-provider': { useAuth: () => provider.render() },
-  });
-  useLogin().onSuccess(response);
-  assert.equal(provider.render().status, 'authenticated');
-  assert.deepEqual(provider.render().user, response.member);
-  assert.equal(provider.cache.size, 1);
-  unauthorized = true;
-  await assert.rejects(provider.render().client.refresh());
-  assert.equal(provider.render().status, 'anonymous');
-  assert.equal(provider.render().user, null);
-  assert.equal(provider.cache.size, 0);
-});
-
-test('provider distinguishes restoration outage from anonymous session', async () => {
-  const provider = mountProvider({ post: async () => { throw new axios.AxiosError('offline', 'ERR_NETWORK'); } });
-  const cleanup = provider.restore();
-  await new Promise((resolve) => setImmediate(resolve));
-  assert.equal(provider.render().status, 'error');
-  assert.match(provider.render().error, /네트워크/);
-  cleanup();
-});
-
-test('mypage renders user details, redirects only anonymous users, and explains outages', () => {
+test('mypage reads shared query data and redirects only a confirmed anonymous user', () => {
   const routes = [];
-  const member = { id: 1, email: 'reader@example.com', nickname: '독자' };
-  let auth = { status: 'loading', user: null, error: '' };
-  let query = { error: null, isFetching: false };
+  let query = { data: undefined, isPending: true, error: null, isFetching: true };
   const MyPageContent = load('app/(route)/mypage/_components/mypage-content.tsx', {
     react: { useEffect: (effect) => effect() },
     'next/link': { __esModule: true, default: 'a' },
     'next/navigation': { useRouter: () => ({ replace: (route) => routes.push(route) }) },
-    '@/app/_components/auth-provider': { useAuth: () => auth },
-    '@/app/_hooks/use-current-user': { useCurrentUser: () => query },
-    '@/app/_lib/auth-client': { getAuthErrorMessage: (error, fallback) => error instanceof Error ? error.message : fallback },
+    '@/_features/auth/hooks/use-auth': { useMe: () => query },
+    '@/_lib/auth-client': { getAuthErrorMessage: (error) => error.message },
   }).default;
   assert.ok(JSON.stringify(MyPageContent()).includes('로그인 상태를 확인'));
   assert.deepEqual(routes, []);
-  auth = { status: 'authenticated', user: member, error: '' };
-  assert.ok(JSON.stringify(MyPageContent()).includes(member.email));
-  assert.ok(JSON.stringify(MyPageContent()).includes(member.nickname));
-  query = { error: new Error('서버 장애'), isFetching: false };
+  query = { data: { nickname: '독자', email: 'reader@example.com' }, isPending: false, error: null };
+  assert.ok(JSON.stringify(MyPageContent()).includes('reader@example.com'));
+  query = { data: undefined, isPending: false, error: new Error('서버 장애') };
   assert.ok(JSON.stringify(MyPageContent()).includes('서버 장애'));
   assert.deepEqual(routes, []);
-  auth = { status: 'error', user: null, error: '네트워크를 확인해 주세요.' };
-  const outage = JSON.stringify(MyPageContent());
-  assert.ok(outage.includes('네트워크를 확인'));
-  assert.ok(outage.includes('/login'));
-  assert.deepEqual(routes, []);
-  auth = { status: 'anonymous', user: null, error: '' };
+  query = { data: null, isPending: false, error: null };
   MyPageContent();
   assert.deepEqual(routes, ['/login']);
 });

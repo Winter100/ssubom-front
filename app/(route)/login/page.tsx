@@ -1,12 +1,7 @@
-﻿import AuthForm from '@/_features/login/components/auth-form';
+﻿import AuthForm from '@/_features/auth/components/auth-form';
 import { Suspense } from 'react';
 
 type LoginPageProps = { searchParams: Promise<{ registered?: string }> };
-
-const LoginContent = async ({ searchParams }: LoginPageProps) => {
-  const { registered } = await searchParams;
-  return <AuthForm mode='login' registered={registered === '1'} />;
-};
 
 const LoginPage = ({ searchParams }: LoginPageProps) => {
   return (
@@ -25,3 +20,8 @@ const LoginPage = ({ searchParams }: LoginPageProps) => {
 };
 
 export default LoginPage;
+
+const LoginContent = async ({ searchParams }: LoginPageProps) => {
+  const { registered } = await searchParams;
+  return <AuthForm mode='login' registered={registered === '1'} />;
+};

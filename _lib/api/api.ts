@@ -3,6 +3,14 @@ import axios, {
   InternalAxiosRequestConfig,
   type AxiosInstance,
 } from 'axios';
+import {
+  getAccessToken,
+  getTokenRevision,
+  setAccessToken,
+} from '@/_features/auth/stores/tokenStore';
+import { authApiPaths } from '@/_constant/auth-api-paths';
+import { apiPath } from '@/_constant/api-path';
+import type { TokenResponse } from '@/_types/auth';
 
 type FieldError = { field: string; message: string };
 type ErrorBody = { message: string; errors?: FieldError[] };
@@ -23,15 +31,114 @@ export const api: AxiosInstance = axios.create({
   timeout: 10_000,
 });
 
-/**
- * Todo 1
- * 인터셉서 이용 액세스 토큰 자동 첨부
- */
+const requiresAuth = (config: InternalAxiosRequestConfig): boolean => {
+  const requestPath = (config.url ?? '').split(/[?#]/)[0].replace(/^\//, '');
+  const requestMethod = (config.method ?? 'get').toUpperCase();
+  return authApiPaths.some(
+    ({ method, path }) =>
+      method === requestMethod && path.replace(/^\//, '') === requestPath,
+  );
+};
 
-/**
- * Todo 2
- * 공통 예외처리
- */
+api.interceptors.request.use((config) => {
+  if (!requiresAuth(config)) return config;
+
+  const accessToken = getAccessToken();
+
+  if (accessToken && !config.headers.has('Authorization')) {
+    config.headers.set('Authorization', `Bearer ${accessToken}`);
+  }
+
+  return config;
+});
+
+let refreshing: Promise<string> | null = null;
+let authExpiredHandler: (() => void) | undefined;
+
+export const onAuthExpired = (handler: () => void): (() => void) => {
+  authExpiredHandler = handler;
+  return () => {
+    if (authExpiredHandler === handler) authExpiredHandler = undefined;
+  };
+};
+
+const expireSession = (): void => {
+  setAccessToken(null);
+  authExpiredHandler?.();
+};
+
+export const refreshAccessToken = (): Promise<string> => {
+  if (refreshing) return refreshing;
+
+  const previousRevision = getTokenRevision();
+  refreshing = Promise.resolve().then(async () => {
+    try {
+      // api의 응답 인터셉터를 거치지 않아 재발급 실패가 재발급을 반복하지 않습니다.
+      const { data } = await axios.post<TokenResponse>(
+        apiPath.refresh,
+        undefined,
+        {
+          baseURL: api.defaults.baseURL,
+          timeout: api.defaults.timeout,
+          withCredentials: true,
+        },
+      );
+      if (typeof data.accessToken !== 'string' || !data.accessToken.trim()) {
+        throw new Error('토큰 재발급 응답이 올바르지 않습니다.');
+      }
+      if (getTokenRevision() !== previousRevision) {
+        const currentToken = getAccessToken();
+        if (!currentToken) throw new Error('인증 상태가 변경되었습니다.');
+        return currentToken;
+      }
+      setAccessToken(data.accessToken);
+      return data.accessToken;
+    } catch (error: unknown) {
+      if (getTokenRevision() === previousRevision) {
+        expireSession();
+      }
+      throw error;
+    } finally {
+      refreshing = null;
+    }
+  });
+
+  return refreshing;
+};
+
+api.interceptors.response.use(
+  (res) => res,
+  async (error: AxiosError) => {
+    const original = error.config as RetryConfig | undefined;
+
+    if (error.response?.status === 401 && original && requiresAuth(original)) {
+      const sentAuthorization = original.headers.get('Authorization');
+      const currentToken = getAccessToken();
+      if (original._retry) {
+        if (currentToken && sentAuthorization === `Bearer ${currentToken}`) {
+          expireSession();
+        }
+      } else {
+        original._retry = true;
+        try {
+          // 늦게 도착한 이전 토큰의 401은 이미 갱신된 토큰으로 재시도합니다.
+          const token =
+            currentToken && sentAuthorization !== `Bearer ${currentToken}`
+              ? currentToken
+              : await refreshAccessToken();
+          original.headers.set('Authorization', `Bearer ${token}`);
+          return api.request(original);
+        } catch (refreshError: unknown) {
+          return Promise.reject(toApiError(refreshError));
+        }
+      }
+    }
+
+    return Promise.reject(toApiError(error));
+  },
+);
+
+// 공통 에러 처리
 export const toApiError = (error: unknown): ApiError => {
   // axios로 인한 에러인가
   if (axios.isAxiosError<ErrorBody>(error)) {
@@ -47,14 +154,3 @@ export const toApiError = (error: unknown): ApiError => {
   }
   return new ApiError('알 수 없는 오류가 발생했습니다.', null);
 };
-
-let refreshing: Promise<string> | null = null;
-
-api.interceptors.response.use(
-  (res) => res,
-  async (error: AxiosError) => {
-    const original = error.config as RetryConfig | undefined;
-
-    return Promise.reject(toApiError(error));
-  },
-);

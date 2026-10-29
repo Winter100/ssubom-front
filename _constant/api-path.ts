@@ -1,8 +1,9 @@
 export const apiPath = {
-  signup: 'auth',
+  signup: 'auth/signup',
   login: 'auth/login',
+  logout: 'auth/logout',
   refresh: 'auth/refresh',
-  currentUser: 'member/currentUser',
+  me: 'member',
   categories: 'categories',
   reviews: 'reviews',
-};
+} as const;
