@@ -2,14 +2,16 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import type { ReviewType } from '../../../_types/review';
 
 type ReviewCardProps = {
   review: ReviewType;
   imageSrc?: string;
+  actions?: ReactNode;
 };
 
-const ReviewCard = ({ review, imageSrc }: ReviewCardProps) => (
+const ReviewCard = ({ review, imageSrc, actions }: ReviewCardProps) => (
   <article className='group grid gap-5 py-7 sm:grid-cols-[190px_minmax(0,1fr)] sm:gap-6'>
     <Link
       href={`/reviews/${review.id}`}
@@ -31,15 +33,18 @@ const ReviewCard = ({ review, imageSrc }: ReviewCardProps) => (
             {review.category.category}
           </span>
         </p>
-        <span
-          aria-label={`5점 만점에 ${review.rating}점`}
-          className='shrink-0 text-sm font-bold'
-        >
-          <span aria-hidden='true' className='mr-1 text-[#d7a459]'>
-            ★
+        <div className='flex shrink-0 flex-wrap items-center justify-end gap-3'>
+          {actions}
+          <span
+            aria-label={`5점 만점에 ${review.rating}점`}
+            className='shrink-0 text-sm font-bold'
+          >
+            <span aria-hidden='true' className='mr-1 text-[#d7a459]'>
+              ★
+            </span>
+            {review.rating.toFixed(1)}
           </span>
-          {review.rating.toFixed(1)}
-        </span>
+        </div>
       </div>
       <h3 className='mt-3 text-lg leading-relaxed font-semibold tracking-tight break-keep'>
         <Link

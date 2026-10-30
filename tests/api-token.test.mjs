@@ -32,6 +32,12 @@ test('configured apiPath values attach tokens only for the registered methods', 
   assert.equal((await api.get(apiPath.me)).data, 'Bearer token');
   assert.equal((await api.post(apiPath.reviews)).data, 'Bearer token');
   assert.equal((await api.get(apiPath.reviews)).data, null);
+  assert.equal((await api.delete(`${apiPath.reviews}/42`)).data, 'Bearer token');
+  assert.equal((await api.get(`${apiPath.reviews}/42`)).data, null);
+  assert.equal((await api.put(`${apiPath.reviews}/42`)).data, null);
+  assert.equal((await api.delete(`${apiPath.reviews}/42/comments`)).data, null);
+  assert.equal((await api.delete(`${apiPath.reviews}/invalid`)).data, null);
+  assert.equal((await api.delete(apiPath.reviews)).data, null);
 });
 
 test('api attaches the latest stored token, preserves explicit authorization and omits cleared tokens', async () => {

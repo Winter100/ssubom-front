@@ -7,4 +7,5 @@ export const reviewKeys = {
   details: () => [...reviewKeys.all, 'details'],
   detail: (reviewId: string) => [...reviewKeys.details(), reviewId],
   categories: () => [...reviewKeys.all, 'categories'],
+  memberReviews: () => [...reviewKeys.all, 'memberReviews'],
 };

@@ -4,6 +4,7 @@ export const apiPath = {
   logout: 'auth/logout',
   refresh: 'auth/refresh',
   me: 'member',
+  myReviews: 'member/reviews',
   categories: 'categories',
   reviews: 'reviews',
 } as const;

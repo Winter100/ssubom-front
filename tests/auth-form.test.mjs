@@ -105,12 +105,14 @@ test('failure preserves input, shows message, and allows another submission', as
 test('mypage reads shared query data and redirects only a confirmed anonymous user', () => {
   const routes = [];
   let query = { data: undefined, isPending: true, error: null, isFetching: true };
-  const MyPageContent = load('app/(route)/mypage/_components/mypage-content.tsx', {
+  const MyPageContent = load('_features/my/components/mypage-content.tsx', {
     react: { useEffect: (effect) => effect() },
     'next/link': { __esModule: true, default: 'a' },
     'next/navigation': { useRouter: () => ({ replace: (route) => routes.push(route) }) },
     '@/_features/auth/hooks/use-auth': { useMe: () => query },
     '@/_lib/auth-client': { getAuthErrorMessage: (error) => error.message },
+    '@/_features/review/components/reviews-query-boundary': { __esModule: true, default: 'ReviewsQueryBoundary' },
+    './my-reviews-feed': { __esModule: true, default: 'MyReviewsFeed' },
   }).default;
   assert.ok(JSON.stringify(MyPageContent()).includes('로그인 상태를 확인'));
   assert.deepEqual(routes, []);

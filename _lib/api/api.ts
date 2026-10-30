@@ -35,8 +35,16 @@ const requiresAuth = (config: InternalAxiosRequestConfig): boolean => {
   const requestPath = (config.url ?? '').split(/[?#]/)[0].replace(/^\//, '');
   const requestMethod = (config.method ?? 'get').toUpperCase();
   return authApiPaths.some(
-    ({ method, path }) =>
-      method === requestMethod && path.replace(/^\//, '') === requestPath,
+    ({ method, path, withId }) => {
+      if (method !== requestMethod) return false;
+      const routePath = path.replace(/^\//, '');
+      if (!withId) return routePath === requestPath;
+      const prefix = `${routePath}/`;
+      return (
+        requestPath.startsWith(prefix) &&
+        /^[1-9]\d*$/.test(requestPath.slice(prefix.length))
+      );
+    },
   );
 };
 
