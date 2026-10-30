@@ -14,6 +14,9 @@ import { hasRequiredReviewFields } from '../lib/review-validation';
 import { restoreReviewDraft, saveReviewDraft } from '../lib/draft-storage';
 import { useCreateReview } from './use-review';
 import { getAuthErrorMessage } from '@/_lib/auth-client';
+import { useRouter } from 'next/navigation';
+import { DRAFT_KEY } from '../lib/draft';
+import { notifyError } from '@/_lib/notifications';
 
 export type ChangeReviewField = <K extends keyof ReviewFields>(
   key: K,
@@ -25,11 +28,13 @@ export type HandleReviewImage = (
 ) => void;
 
 export const useReviewWriter = () => {
+  const router = useRouter();
   const [fields, setFields] = useState<ReviewFields>(emptyFields);
   const [preview, setPreview] = useState<ReviewData | null>(null);
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [readingImage, setReadingImage] = useState<boolean>(false);
+  const [resetVersion, setResetVersion] = useState<number>(0);
   const imageFiles = useRef<Map<string, File>>(new Map());
   const createReviewMutation = useCreateReview();
   const isSubmitting = createReviewMutation.isPending;
@@ -53,40 +58,44 @@ export const useReviewWriter = () => {
     };
   }, [fields.image]);
 
-  const editor = useEditor({
-    extensions: createExtensions(),
-    immediatelyRender: false,
-    content: { type: 'doc', content: [{ type: 'paragraph' }] },
-    editorProps: {
-      attributes: {
-        class: `${richTextClasses} min-h-80 px-5 py-4 outline-none sm:px-7`,
-        role: 'textbox',
-        'aria-label': '리뷰 본문',
-        'aria-multiline': 'true',
+  const editor = useEditor(
+    {
+      extensions: createExtensions(),
+      immediatelyRender: false,
+      content: { type: 'doc', content: [{ type: 'paragraph' }] },
+      editorProps: {
+        attributes: {
+          class: `${richTextClasses} min-h-80 px-5 py-4 outline-none sm:px-7`,
+          role: 'textbox',
+          'aria-label': '리뷰 본문',
+          'aria-multiline': 'true',
+        },
+      },
+      onCreate: async ({ editor: current }) => {
+        setReadingImage(true);
+        try {
+          const restored = await restoreReviewDraft(current, imageFiles.current);
+          if (!restored) return;
+          setFields(restored);
+          setMessage('이 브라우저에 저장한 작성 내용을 불러왔습니다.');
+        } catch {
+          if (current.isDestroyed) return;
+          setError(
+            '임시 저장본을 불러오지 못했습니다. 기존 저장본은 변경하지 않았습니다.',
+          );
+        } finally {
+          if (!current.isDestroyed) setReadingImage(false);
+        }
       },
     },
-    onCreate: async ({ editor: current }) => {
-      setReadingImage(true);
-      try {
-        const restored = await restoreReviewDraft(current, imageFiles.current);
-        if (!restored) return;
-        setFields(restored);
-        setMessage('이 브라우저에 저장한 작성 내용을 불러왔습니다.');
-      } catch {
-        if (current.isDestroyed) return;
-        setError(
-          '임시 저장본을 불러오지 못했습니다. 기존 저장본은 변경하지 않았습니다.',
-        );
-      } finally {
-        if (!current.isDestroyed) setReadingImage(false);
-      }
-    },
-  });
+    [resetVersion],
+  );
 
   const changeField = <K extends keyof ReviewFields>(
     key: K,
     value: ReviewFields[K],
   ) => {
+    if (isSubmitting) return;
     setFields((current) => ({ ...current, [key]: value }));
     setMessage('');
   };
@@ -167,7 +176,21 @@ export const useReviewWriter = () => {
         files: new Map(imageFiles.current),
       },
       {
-        onSuccess: () => setMessage('리뷰를 생성했습니다.'),
+        onSuccess: () => {
+          try {
+            window.localStorage.removeItem(DRAFT_KEY);
+          } catch {
+            notifyError('리뷰는 등록되었지만 임시 저장본을 삭제하지 못했습니다.');
+          }
+          setFields(emptyFields);
+          setPreview(null);
+          setMessage('');
+          setError('');
+          imageFiles.current.forEach((_, source) => URL.revokeObjectURL(source));
+          imageFiles.current.clear();
+          setResetVersion((current) => current + 1);
+          router.replace('/reviews');
+        },
         onError: (cause) => {
           setError(getAuthErrorMessage(cause, '리뷰 생성에 실패했습니다.'));
         },
@@ -187,6 +210,7 @@ export const useReviewWriter = () => {
     error,
     readingImage,
     isSubmitting,
+    resetVersion,
     editor,
     changeField,
     handleImage,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, type ChangeEvent } from 'react';
+import { useEffect, useRef, type ChangeEvent } from 'react';
 import { EditorContent, useEditorState, type Editor } from '@tiptap/react';
 import { countBodyImages, MAX_BODY_IMAGES } from '../../lib/review-limits';
 import EditorToolbar from './editor-toolbar';
@@ -25,6 +25,10 @@ const ReviewBodyEditor = ({
         current ? countBodyImages(current.getJSON()) : 0,
     }) ?? 0;
   const imageDisabled = readingImage || imageCount >= MAX_BODY_IMAGES;
+
+  useEffect(() => {
+    editor?.setEditable(!readingImage);
+  }, [editor, readingImage]);
 
   return (
     <section className='rounded-2xl border border-stone-200 bg-white p-5 sm:p-7'>

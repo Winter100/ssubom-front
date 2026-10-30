@@ -1,5 +1,5 @@
 import ReviewsQueryBoundary from '@/_features/review/components/reviews-query-boundary';
-import ReviewDetailContainer from '@/_features/review/components/detail/review-detail-container';
+import ReviewDetailClient from '@/_features/review/components/detail/review-detail-client';
 import ReviewDetailSkeleton from '@/_features/review/components/detail/review-detail-skeleton';
 import { notFound } from 'next/navigation';
 import { isValidReviewId } from '@/_features/review/lib/review-id';
@@ -10,7 +10,7 @@ const ReviewDetailContent = async ({ params }: ReviewDetailPageProps) => {
   const { id } = await params;
   if (!isValidReviewId(id)) notFound();
 
-  return <ReviewDetailContainer key={id} id={id} />;
+  return <ReviewDetailClient key={id} id={id} />;
 };
 
 const ReviewDetailPage = ({ params }: ReviewDetailPageProps) => (

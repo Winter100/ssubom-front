@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useReviewWriter } from '../../hooks/use-review-writer';
 import ReviewPreview from '../review-preview';
 import ReviewWriterForm from './review-writer-form';
-import { useCategories } from '@/_features/review/hooks/use-categories';
+import { useCategories } from '../../hooks/use-review';
 
 // <div className='flex items-center gap-2'>
 //   <button
@@ -41,6 +41,7 @@ const ReviewWriter = () => {
     error,
     readingImage,
     isSubmitting,
+    resetVersion,
     editor,
     changeField,
     handleImage,
@@ -93,6 +94,7 @@ const ReviewWriter = () => {
         </p>
         <div hidden={preview !== null}>
           <ReviewWriterForm
+            key={resetVersion}
             fields={fields}
             changeField={changeField}
             editor={editor}
@@ -100,7 +102,8 @@ const ReviewWriter = () => {
             isSubmitting={isSubmitting}
             handleImage={handleImage}
             submitReview={submitReview}
-            categoryList={data.data ?? []}
+            saveDraft={saveDraft}
+            categoryList={data ?? []}
           />
         </div>
         {preview && <ReviewPreview review={preview} />}

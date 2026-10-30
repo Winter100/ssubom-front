@@ -4,6 +4,7 @@ import { ReviewData } from '../_features/review/lib/review-types';
 type Author = {
   id: number;
   nickname: string;
+  profileImage?: string | null;
 };
 export type CategoryType = {
   id: number;
@@ -42,6 +43,7 @@ export type ReviewSearchParams = {
   size: number;
   categoryId?: number;
   query?: string;
+  searchType?: 'title' | 'author';
   sort: 'latest' | 'rating';
 };
 

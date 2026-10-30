@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReviewType } from '../../../_types/review';
@@ -48,18 +50,61 @@ const ReviewCard = ({ review, imageSrc }: ReviewCardProps) => (
         </Link>
       </h3>
       <div className='mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-stone-400'>
-        <span className='mr-auto inline-flex items-center gap-2 text-xs text-stone-600'>
-          <span
-            aria-hidden='true'
-            className='grid size-6 place-items-center rounded-full bg-[#e9eee5] text-[#66785a]'
-          >
-            {review.author.nickname.slice(0, 1)}
-          </span>
+        <div className='mr-auto inline-flex items-center gap-2 text-xs text-stone-600'>
+          <Image
+            key={review.author.profileImage}
+            src={review.author.profileImage || '/default-profile.svg'}
+            alt=''
+            width={24}
+            height={24}
+            unoptimized
+            onError={(event) => {
+              event.currentTarget.srcset = '';
+              event.currentTarget.src = '/default-profile.svg';
+            }}
+            className='size-6 shrink-0 rounded-full object-cover'
+          />
           {review.author.nickname}
-        </span>
-        <time dateTime={review.createdAt}>
-          {review.createdAt.slice(0, 10).replaceAll('-', '.')}
-        </time>
+
+          <span aria-hidden='true' className='h-3 w-px bg-stone-200' />
+
+          <span className='inline-flex items-center gap-1.5'>
+            <svg
+              aria-hidden='true'
+              viewBox='0 0 20 20'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='1.3'
+              className='size-3.5 text-stone-400'
+            >
+              <path d='M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5Z' />
+              <circle cx='10' cy='10' r='2' />
+            </svg>
+            <span className='sr-only'>조회수 </span>
+            {review.viewCount.toLocaleString('ko-KR')}
+          </span>
+        </div>
+        <div className='flex items-center gap-3 whitespace-nowrap text-[11px] text-stone-500 tabular-nums'>
+          <time
+            dateTime={review.createdAt}
+            className='inline-flex items-center gap-1.5'
+          >
+            <svg
+              aria-hidden='true'
+              viewBox='0 0 20 20'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='1.3'
+              strokeLinecap='round'
+              className='size-3.5 text-stone-400'
+            >
+              <rect x='3.5' y='4.5' width='13' height='12' rx='2' />
+              <path d='M6.5 3v3M13.5 3v3M3.5 8.5h13' />
+            </svg>
+            <span className='sr-only'>작성일 </span>
+            {review.createdAt.slice(0, 10).replaceAll('-', '.')}
+          </time>
+        </div>
       </div>
     </div>
   </article>

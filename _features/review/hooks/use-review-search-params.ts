@@ -16,6 +16,7 @@ export const parseReviewSearchParams = (
   size: positiveInteger(params.get('size')) ?? 10,
   categoryId: positiveInteger(params.get('categoryId')),
   query: params.get('query')?.trim() || undefined,
+  searchType: params.get('searchType') === 'author' ? 'author' : 'title',
   sort: params.get('sort') === 'rating' ? 'rating' : 'latest',
 });
 
@@ -32,6 +33,7 @@ export const createReviewSearchHref = (
     next.size !== current.size ||
     next.categoryId !== current.categoryId ||
     next.query !== current.query ||
+    next.searchType !== current.searchType ||
     next.sort !== current.sort;
   if (filtersChanged) next.page = 1;
   if (!filtersChanged && next.page === current.page) return null;
@@ -40,6 +42,7 @@ export const createReviewSearchHref = (
   params.set('page', String(next.page));
   params.set('size', String(next.size));
   params.set('sort', next.sort);
+  params.set('searchType', next.searchType ?? 'title');
   if (next.categoryId === undefined) params.delete('categoryId');
   else params.set('categoryId', String(next.categoryId));
   if (next.query === undefined) params.delete('query');
@@ -48,7 +51,7 @@ export const createReviewSearchHref = (
 };
 
 type ReviewListUpdates = Partial<
-  Pick<ReviewSearchParams, 'page' | 'categoryId' | 'query'>
+  Pick<ReviewSearchParams, 'page' | 'categoryId' | 'query' | 'searchType'>
 >;
 
 export const createReviewListHref = (

@@ -27,6 +27,7 @@ type ReviewWriterFormProps = {
   handleImage: HandleReviewImage;
   categoryList: CategoryType[];
   submitReview: () => void;
+  saveDraft: () => void;
 };
 
 const ReviewWriterForm = ({
@@ -38,11 +39,13 @@ const ReviewWriterForm = ({
   handleImage,
   submitReview,
   categoryList,
+  saveDraft,
 }: ReviewWriterFormProps) => {
   const [submitAttempted, setSubmitAttempted] = useState<boolean>(false);
   const busy = readingImage || isSubmitting;
 
   const handleSubmit = () => {
+    if (busy) return;
     setSubmitAttempted(true);
     if (
       !hasRequiredReviewFields(fields) ||
@@ -54,7 +57,11 @@ const ReviewWriterForm = ({
   };
 
   return (
-    <div className='grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_260px]'>
+    <fieldset
+      disabled={isSubmitting}
+      aria-busy={isSubmitting}
+      className='grid min-w-0 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_260px] disabled:opacity-60'
+    >
       <div className='min-w-0 space-y-8'>
         <ReviewBasicsFields
           fields={fields}
@@ -133,7 +140,7 @@ const ReviewWriterForm = ({
           <div className='flex items-center gap-2'>
             <button
               type='button'
-              // onClick={saveDraft}
+              onClick={saveDraft}
               disabled={!editor || busy}
               className='cursor-pointer rounded-full border border-stone-200 px-4 py-2.5 text-xs font-medium hover:bg-stone-100 disabled:opacity-40'
             >
@@ -162,7 +169,7 @@ const ReviewWriterForm = ({
           공간이 부족할 수 있어요. 다른 기기와 공유되지는 않습니다.
         </p>
       </aside>
-    </div>
+    </fieldset>
   );
 };
 
