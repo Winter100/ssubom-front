@@ -1,5 +1,6 @@
 'use client';
 
+import { getCategoryIcon } from '../../lib/category-icon';
 import type { ReviewFields } from '../../lib/review-types';
 import { isValidReviewRating } from '../../lib/review-validation';
 import type { ChangeReviewField } from '../../hooks/use-review-writer';
@@ -141,7 +142,7 @@ const ReviewBasicsFields = ({
               </option>
               {categoryList.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.category}
+                  {getCategoryIcon(item.category)} {item.category}
                 </option>
               ))}
             </select>

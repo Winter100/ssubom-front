@@ -5,6 +5,7 @@ import { useCategories } from '@/_features/review/hooks/use-review';
 import ReviewsQueryBoundary from '@/_features/review/components/reviews-query-boundary';
 import type { ReviewSearchParams } from '@/_types/review';
 import MyReviewResults from './my-review-results';
+import CategoryLabel from '@/_features/review/components/category-label';
 
 const MyReviewsFeed = () => {
   const [filters, setFilters] = useState<
@@ -50,7 +51,7 @@ const MyReviewsFeed = () => {
                 }
                 className={`cursor-pointer rounded-full px-4 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 ${filters.categoryId === category.id ? 'bg-[#263d31] text-white' : 'bg-white text-stone-500 ring-1 ring-stone-200 hover:bg-stone-100'}`}
               >
-                {category.category}
+                <CategoryLabel category={category.category} />
               </button>
             ),
           )}

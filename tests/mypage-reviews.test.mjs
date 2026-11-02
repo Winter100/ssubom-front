@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { test } from 'node:test';
 import ts from 'typescript';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 const dependency = createRequire(import.meta.url);
 const load = (file, overrides) => {
@@ -15,13 +17,36 @@ const load = (file, overrides) => {
   );
   return compiled.exports;
 };
+const ReviewEmptyState = load('_features/review/components/review-empty-state.tsx', {
+  'next/link': { __esModule: true, default: 'a' },
+}).default;
 const findAll = (node, match) => {
   if (!node || typeof node !== 'object') return [];
   if (Array.isArray(node)) return node.flatMap((child) => findAll(child, match));
+  if (node.type === ReviewEmptyState) return findAll(ReviewEmptyState(node.props), match);
   return [...(match(node) ? [node] : []), ...findAll(node.props?.children, match)];
 };
 const pageData = (content, overrides = {}) => ({ content, page: 1, size: 10, totalElements: content.length, totalPages: content.length ? 1 : 0, ...overrides });
 const boundary = { __esModule: true, default: 'ReviewsQueryBoundary' };
+
+test('shared empty state uses the same presentation with search and member guidance', () => {
+  for (const variant of ['search', 'member']) {
+    let resets = 0;
+    const props = { variant, hasFilters: true, onReset: () => { resets++; } };
+    const html = renderToStaticMarkup(createElement(ReviewEmptyState, props));
+    assert.match(html, /border-dashed/);
+    assert.match(html, /일치하는 리뷰가 없습니다/);
+    assert.ok(html.includes(variant === 'search'
+      ? '다른 검색어나 카테고리로 찾아보세요.'
+      : '다른 카테고리로 찾아보세요.'));
+    findAll(ReviewEmptyState(props), (node) => node.type === 'button')[0].props.onClick();
+    assert.equal(resets, 1);
+    const empty = renderToStaticMarkup(createElement(ReviewEmptyState, { ...props, hasFilters: false }));
+    assert.match(empty, /href="\/reviews\/new"/);
+    assert.match(empty, /첫 리뷰 쓰기/);
+    assert.doesNotMatch(empty, /<button/);
+  }
+});
 
 test('delete mutation sends DELETE to the selected review and awaits cache invalidation', async () => {
   const requests = [];
@@ -91,10 +116,11 @@ test('feed uses the shared category hook and resets pagination when categories c
     '@/_features/review/hooks/use-review': { useCategories: () => ({ data: [{ id: 2, category: '디지털' }] }) },
     '@/_features/review/components/reviews-query-boundary': boundary,
     './my-review-results': { __esModule: true, default: 'MyReviewResults' },
+    '@/_features/review/components/category-label': { __esModule: true, default: 'CategoryLabel' },
   }).default;
   const results = (tree) => findAll(tree, (node) => node.type === 'MyReviewResults')[0];
   results(Feed()).props.onPageChange(3);
-  findAll(Feed(), (node) => node.type === 'button' && node.props.children === '디지털')[0].props.onClick();
+  findAll(Feed(), (node) => node.type === 'button' && node.props.children?.props?.category === '디지털')[0].props.onClick();
   let tree = Feed();
   assert.deepEqual(results(tree).props.params, { page: 1, categoryId: 2, size: 10 });
   const wrapper = findAll(tree, (node) => node.type === 'ReviewsQueryBoundary')[0];
@@ -125,6 +151,7 @@ const resultsView = (data, params = { page: 1, size: 10 }) => {
     close: () => dialogCalls.push('close'),
   };
   const Results = load('_features/my/components/my-review-results.tsx', {
+    '@/_features/review/components/review-empty-state': { __esModule: true, default: ReviewEmptyState },
     'next/navigation': { useRouter: () => ({ push: (url) => routes.push(url) }) },
     react: {
       useEffect: (effect) => effect(),

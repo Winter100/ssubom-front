@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { useReviewSearchParams } from '../hooks/use-review-search-params';
 import ReviewCard from './review-card';
+import CategoryLabel from './category-label';
+import ReviewEmptyState from './review-empty-state';
 import ReviewPagination from './list/review-pagination';
 import ReviewsQueryBoundary from './reviews-query-boundary';
 import ReviewListSkeleton from './list/review-list-skeleton';
@@ -110,6 +112,15 @@ const ReviewSearchFeed = () => {
         >
           검색
         </button>
+        <button
+          type='button'
+          onClick={resetFilters}
+          aria-label='필터 초기화'
+          title='필터 초기화'
+          className='shrink-0 cursor-pointer rounded-xl border border-stone-200 bg-white px-3 py-2 text-base leading-5 text-stone-500 transition-colors hover:bg-stone-100 hover:text-[#23745b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700'
+        >
+          <span aria-hidden='true'>↻</span>
+        </button>
       </form>
 
       <div className='mt-6 flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 pb-5'>
@@ -120,7 +131,7 @@ const ReviewSearchFeed = () => {
             onClick={() => updateParams({ categoryId: undefined })}
             className={`cursor-pointer rounded-full px-4 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 ${categoryId === undefined ? 'bg-[#263d31] text-white' : 'bg-white text-stone-500 ring-1 ring-stone-200 hover:bg-stone-100'}`}
           >
-            전체
+            <CategoryLabel category='전체' />
           </button>
           {categories.map((item) => (
             <button
@@ -130,17 +141,10 @@ const ReviewSearchFeed = () => {
               onClick={() => updateParams({ categoryId: item.id })}
               className={`cursor-pointer rounded-full px-4 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 ${categoryId === item.id ? 'bg-[#263d31] text-white' : 'bg-white text-stone-500 ring-1 ring-stone-200 hover:bg-stone-100'}`}
             >
-              {item.category}
+              <CategoryLabel category={item.category} />
             </button>
           ))}
         </div>
-        <button
-          type='button'
-          onClick={resetFilters}
-          className='shrink-0 cursor-pointer rounded-lg px-3 py-2 text-xs text-stone-500 transition-colors hover:bg-stone-100 hover:text-[#23745b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700'
-        >
-          필터 초기화
-        </button>
       </div>
       <ReviewsQueryBoundary
         skeletonCount={size}
@@ -188,27 +192,11 @@ const ReviewSearchResults = ({
             <ReviewCard key={review.id} review={review} />
           ))}
           {data.content.length === 0 && (
-            <div className='py-20 text-center'>
-              <p className='text-lg font-semibold'>
-                {hasFilters
-                  ? '아직 일치하는 리뷰가 없어요.'
-                  : '아직 등록된 리뷰가 없습니다.'}
-              </p>
-              {hasFilters && (
-                <>
-                  <p className='mt-2 text-sm text-stone-500'>
-                    다른 검색어나 카테고리로 찾아보세요.
-                  </p>
-                  <button
-                    type='button'
-                    onClick={onReset}
-                    className='mt-5 cursor-pointer text-sm font-semibold text-[#23745b] underline underline-offset-4'
-                  >
-                    검색·카테고리 초기화
-                  </button>
-                </>
-              )}
-            </div>
+            <ReviewEmptyState
+              variant='search'
+              hasFilters={hasFilters}
+              onReset={onReset}
+            />
           )}
         </div>
       </div>

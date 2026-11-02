@@ -1,9 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { renderToReactElement } from '@tiptap/static-renderer/pm/react';
 import { useDetailReview } from '../../hooks/use-review';
-import { createExtensions, richTextClasses } from '../../lib/editor-config';
+import { richTextClasses } from '../../lib/editor-config';
+import { getReviewImageUrl } from '../../lib/review-image';
+import ReviewBody from './review-body';
+import CategoryLabel from '../category-label';
 
 const ReviewDetailContainer = ({ id }: { id: string }) => {
   const { data: review } = useDetailReview(id);
@@ -20,6 +22,10 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
               <h1 className='mt-4 max-w-3xl text-2xl leading-snug font-bold tracking-tight break-words sm:text-4xl'>
                 {review.title}
               </h1>
+              <p className='mt-3 text-sm break-words text-stone-500'>
+                <span className='mr-2 text-stone-400'>상품명</span>
+                {review.product}
+              </p>
               <div className='mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-stone-400'>
                 <div className='mr-auto inline-flex items-center gap-2 text-xs text-stone-600'>
                   <Image
@@ -90,11 +96,19 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
             <div className='mt-5'>
               <div className='relative aspect-[16/9] w-full min-w-0 overflow-hidden rounded-xl border border-dashed border-[#bdccba] bg-[#f3f6ef]'>
                 <Image
-                  src='/reviews/no-image.svg'
-                  alt='대표 이미지 없음'
+                  src={
+                    getReviewImageUrl(review.mainImageKey) ||
+                    '/reviews/no-image.svg'
+                  }
+                  alt={
+                    review.mainImageKey
+                      ? `${review.product} 대표 이미지`
+                      : '대표 이미지 없음'
+                  }
                   fill
+                  unoptimized
                   sizes='(max-width: 1024px) 100vw, 700px'
-                  className='object-contain'
+                  className='object-scale-down'
                 />
               </div>
             </div>
@@ -110,10 +124,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
             <div
               className={`mt-5 ${richTextClasses} [&_p]:leading-2 [&_p]:whitespace-pre-wrap [&_p:empty]:min-h-lh`}
             >
-              {renderToReactElement({
-                content: review.content,
-                extensions: createExtensions(),
-              })}
+              <ReviewBody content={review.content} />
             </div>
           </section>
           <div
@@ -187,6 +198,10 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
             <h2 className='mt-3 text-lg font-semibold'>리뷰 요약</h2>
             <dl className='mt-5 space-y-4 text-xs'>
               <div className='flex justify-between gap-4'>
+                <dt className='shrink-0 text-stone-400'>상품명</dt>
+                <dd className='min-w-0 break-words'>{review.product}</dd>
+              </div>
+              <div className='flex justify-between gap-4'>
                 <dt className='shrink-0 text-stone-400'>사용 기간</dt>
                 <dd className='whitespace-pre-wrap break-words'>
                   {review.duration?.trim() || '등록된 사용 기간이 없습니다.'}
@@ -194,18 +209,14 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
               </div>
               <div className='flex justify-between gap-4'>
                 <dt className='shrink-0 text-stone-400'>카테고리</dt>
-                <dd>{review.category.category}</dd>
+                <dd>
+                  <CategoryLabel category={review.category.category} />
+                </dd>
               </div>
               <div className='flex justify-between gap-4'>
                 <dt className='shrink-0 text-stone-400'>작성자 평점</dt>
                 <dd className='text-[#d7a459]'>
                   ★ {review.rating.toFixed(1)} / 5
-                </dd>
-              </div>
-              <div className='flex justify-between gap-4'>
-                <dt className='shrink-0 text-stone-400'>조회수</dt>
-                <dd className='tabular-nums'>
-                  {review.viewCount.toLocaleString('ko-KR')}
                 </dd>
               </div>
             </dl>

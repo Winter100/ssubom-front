@@ -12,7 +12,7 @@ const ReviewFeed = () => (
     </p>
     <div className='flex flex-wrap items-center justify-between gap-3'>
       <h2 id='reviews-title' className='text-2xl font-bold tracking-tight'>
-        요즘, 써본 이야기
+        최근, 써본 이야기
       </h2>
       <Link
         href='/reviews'

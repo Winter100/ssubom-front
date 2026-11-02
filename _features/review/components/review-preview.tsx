@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { createExtensions, richTextClasses } from '../lib/editor-config';
 import type { ReviewData } from '../lib/review-types';
+import CategoryLabel from './category-label';
 
 export type PreviewData = ReviewData;
 
@@ -20,7 +21,7 @@ const ReviewPreview = ({ review }: { review: PreviewData }) => {
     <div className='grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_260px]'>
       <article className='min-w-0'>
         <span className='rounded-full bg-[#e8efe5] px-3 py-1.5 text-[10px] font-medium text-[#50755c]'>
-          {review.category?.category}
+          {review.category && <CategoryLabel category={review.category.category} />}
         </span>
         <h1 className='mt-5 text-2xl leading-relaxed font-bold tracking-tight break-keep sm:text-4xl sm:leading-snug'>
           {review.title || '리뷰 제목을 입력해 주세요'}
@@ -132,7 +133,7 @@ const ReviewPreview = ({ review }: { review: PreviewData }) => {
           </div>
           <div className='flex justify-between gap-4'>
             <dt className='text-stone-400'>카테고리</dt>
-            <dd>{review.category?.category}</dd>
+            <dd>{review.category && <CategoryLabel category={review.category.category} />}</dd>
           </div>
           <div className='flex justify-between gap-4'>
             <dt className='text-stone-400'>작성자 평점</dt>

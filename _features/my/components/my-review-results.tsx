@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import ReviewCard from '@/_features/review/components/review-card';
+import ReviewEmptyState from '@/_features/review/components/review-empty-state';
 import ReviewListSkeleton from '@/_features/review/components/list/review-list-skeleton';
 import ReviewPagination from '@/_features/review/components/list/review-pagination';
 import type { ReviewsParams, ReviewType } from '@/_types/review';
@@ -67,34 +67,7 @@ const MyReviewResults = ({
   return (
     <>
       {reviewPage.content.length === 0 ? (
-        <div className='mt-5 rounded-2xl border border-dashed border-[#dfe8df] bg-[#edf3ec]/50 px-6 py-12 text-center'>
-          <p className='text-sm font-medium text-stone-700'>
-            {hasFilters
-              ? '일치하는 리뷰가 없습니다.'
-              : '아직 작성한 리뷰가 없습니다.'}
-          </p>
-          <p className='mt-2 text-xs leading-6 text-stone-500'>
-            {hasFilters
-              ? '다른 카테고리로 찾아보세요.'
-              : '직접 써본 경험을 첫 리뷰로 남겨보세요.'}
-          </p>
-          {hasFilters ? (
-            <button
-              type='button'
-              onClick={onReset}
-              className='mt-5 rounded-sm text-xs font-semibold text-[#23745b] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700'
-            >
-              카테고리 초기화
-            </button>
-          ) : (
-            <Link
-              href='/reviews/new'
-              className='mt-5 inline-flex rounded-full bg-[#23745b] px-5 py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#185b46] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#23745b]'
-            >
-              첫 리뷰 쓰기
-            </Link>
-          )}
-        </div>
+        <ReviewEmptyState variant='member' hasFilters={hasFilters} onReset={onReset} />
       ) : (
         <div className='divide-y divide-stone-200/70'>
           {reviewPage.content.map((review) => (
