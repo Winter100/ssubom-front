@@ -106,6 +106,7 @@ test('feed uses the shared category hook and resets pagination when categories c
 
 const resultsView = (data, params = { page: 1, size: 10 }) => {
   const pages = [];
+  const routes = [];
   const corrections = [];
   let resets = 0;
   let selectedReview = null;
@@ -124,6 +125,7 @@ const resultsView = (data, params = { page: 1, size: 10 }) => {
     close: () => dialogCalls.push('close'),
   };
   const Results = load('_features/my/components/my-review-results.tsx', {
+    'next/navigation': { useRouter: () => ({ push: (url) => routes.push(url) }) },
     react: {
       useEffect: (effect) => effect(),
       useRef: (initial) => {
@@ -144,19 +146,21 @@ const resultsView = (data, params = { page: 1, size: 10 }) => {
     refCursor = 0;
     return Results({ params, onPageChange: (page) => pages.push(page), onPageCorrection: (page) => corrections.push(page), onReset: () => { resets++; } });
   };
-  return { tree: render(), render, dialogCalls, dialog, mutation, deleteCalls, pages, corrections, resetCount: () => resets };
+  return { tree: render(), render, dialogCalls, dialog, mutation, deleteCalls, pages, routes, corrections, resetCount: () => resets };
 };
 
 test('server reviews pass compact management actions into each card without footer wrappers', () => {
   const reviews = [{ id: 1, title: '나의 리뷰' }, { id: 2, title: '다음 리뷰' }];
-  const { tree, pages } = resultsView(pageData(reviews, { totalElements: 25, totalPages: 3 }));
+  const { tree, pages, routes } = resultsView(pageData(reviews, { totalElements: 25, totalPages: 3 }));
   const cards = findAll(tree, (node) => node.type === 'ReviewCard');
   assert.deepEqual(cards.map((card) => card.props.review), reviews);
   assert.equal(findAll(tree, (node) => node.props?.className === 'pb-5').length, 0);
   for (const card of cards) {
     const buttons = findAll(card.props.actions, (node) => node.type === 'button');
     assert.deepEqual(buttons.map((button) => button.props.children), ['수정', '삭제']);
-    assert.ok(buttons[0].props.disabled && !buttons[0].props.onClick);
+    assert.ok(!buttons[0].props.disabled);
+    buttons[0].props.onClick();
+    assert.equal(routes.at(-1), `/reviews/edit/${card.props.review.id}`);
     assert.equal(buttons[1].props.disabled, false);
     assert.equal(buttons[1].props['aria-haspopup'], 'dialog');
   }

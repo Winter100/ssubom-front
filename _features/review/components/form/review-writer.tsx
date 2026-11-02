@@ -1,7 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useReviewWriter } from '../../hooks/use-review-writer';
+import {
+  useReviewWriter,
+  type ReviewWriterOptions,
+} from '../../hooks/use-review-writer';
 import ReviewPreview from '../review-preview';
 import ReviewWriterForm from './review-writer-form';
 import { useCategories } from '../../hooks/use-review';
@@ -33,7 +36,8 @@ import { useCategories } from '../../hooks/use-review';
 //   </button>
 // </div>
 
-const ReviewWriter = () => {
+const ReviewWriter = ({ initialReview, onSubmit, submitting }: ReviewWriterOptions) => {
+  const isEditing = initialReview !== undefined;
   const {
     fields,
     preview,
@@ -47,8 +51,7 @@ const ReviewWriter = () => {
     handleImage,
     saveDraft,
     submitReview,
-    togglePreview,
-  } = useReviewWriter();
+  } = useReviewWriter({ initialReview, onSubmit, submitting });
 
   const { data } = useCategories();
 
@@ -66,15 +69,20 @@ const ReviewWriter = () => {
             {preview ? 'PREVIEW YOUR STORY' : 'WRITE YOUR EXPERIENCE'}
           </p>
           <h1 className='mt-3 text-3xl font-bold tracking-tight'>
-            {preview ? '이렇게 보여요.' : '써본 이야기를 들려주세요.'}
+            {preview
+              ? '이렇게 보여요.'
+              : isEditing
+                ? '리뷰를 수정해 주세요.'
+                : '써본 이야기를 들려주세요.'}
           </h1>
           <p className='mt-3 text-xs leading-6 text-stone-500'>
             {preview
               ? '상세 페이지 형태의 미리보기입니다. 이어서 작성 버튼으로 돌아갈 수 있어요.'
               : '작은 경험 하나가 누군가의 선택에 도움이 될 수 있어요.'}
             <br />
-            현재는 작성·미리보기·브라우저 임시 저장만 가능하며, 공개 게시되지는
-            않습니다.
+            {isEditing
+              ? '수정한 내용과 이미지를 확인한 뒤 저장해 주세요.'
+              : '현재는 작성·미리보기·브라우저 임시 저장만 가능하며, 공개 게시되지는 않습니다.'}
           </p>
         </div>
         {error && (
@@ -102,7 +110,8 @@ const ReviewWriter = () => {
             isSubmitting={isSubmitting}
             handleImage={handleImage}
             submitReview={submitReview}
-            saveDraft={saveDraft}
+            saveDraft={isEditing ? undefined : saveDraft}
+            submitLabel={isEditing ? '수정' : '등록'}
             categoryList={data ?? []}
           />
         </div>

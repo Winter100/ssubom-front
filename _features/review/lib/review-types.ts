@@ -15,10 +15,18 @@ export type ReviewFields = {
 
 export type ReviewData = ReviewFields & { body: JSONContent };
 
-export type ReviewCreateRequest = Omit<ReviewData, 'category' | 'image'> & {
+export type ReviewCreateRequest = Omit<ReviewData, 'category' | 'image' | 'body'> & {
+  content: JSONContent;
   mainImageKey: string | null;
   categoryId: number;
   subImageKeys: string[];
+};
+
+export type UpdateReviewInput = {
+  reviewId: string;
+  review: ReviewData;
+  files: ReadonlyMap<string, File>;
+  existingImages: ReadonlyMap<string, string>;
 };
 
 export const emptyFields: ReviewFields = {

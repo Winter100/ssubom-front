@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ReviewCreateRequest } from './review-types';
+import { apiPath } from '@/_constant/api-path';
 import { api } from '@/_lib/api/api';
 import { getAuthErrorMessage } from '@/_lib/auth-client';
 
@@ -21,7 +21,7 @@ export const issueReviewImageUrls = async (
   images: PresignedImageRequest[],
 ): Promise<PresignedImageUrl[]> => {
   const { data } = await api.post<PresignedImageUrl[]>(
-    'storage/presigned-url',
+    apiPath.presignedImages,
     {
       images,
     },
@@ -43,10 +43,4 @@ export const uploadReviewImage = async (
       getAuthErrorMessage(cause, `이미지 업로드에 실패했습니다: ${file.name}`),
     );
   }
-};
-
-export const postReview = async (
-  review: ReviewCreateRequest,
-): Promise<void> => {
-  await api.post('reviews', review);
 };

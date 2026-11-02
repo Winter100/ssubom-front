@@ -34,7 +34,15 @@ test('configured apiPath values attach tokens only for the registered methods', 
   assert.equal((await api.get(apiPath.reviews)).data, null);
   assert.equal((await api.delete(`${apiPath.reviews}/42`)).data, 'Bearer token');
   assert.equal((await api.get(`${apiPath.reviews}/42`)).data, null);
-  assert.equal((await api.put(`${apiPath.reviews}/42`)).data, null);
+  assert.equal((await api.get(`${apiPath.reviews}/42/edit`)).data, 'Bearer token');
+  assert.equal((await api.get(`${apiPath.reviews}/42/edit?tab=body`)).data, 'Bearer token');
+  assert.equal((await api.post(`${apiPath.reviews}/42/edit`)).data, null);
+  assert.equal((await api.get(`${apiPath.reviews}/invalid/edit`)).data, null);
+  assert.equal((await api.get(`${apiPath.reviews}/42/edit/other`)).data, null);
+  assert.equal((await api.put(`${apiPath.reviews}/42`)).data, 'Bearer token');
+  assert.equal((await api.post(apiPath.presignedImages)).data, 'Bearer token');
+  assert.equal((await api.get(apiPath.presignedImages)).data, null);
+  assert.equal((await api.put(`${apiPath.reviews}/42/edit`)).data, null);
   assert.equal((await api.delete(`${apiPath.reviews}/42/comments`)).data, null);
   assert.equal((await api.delete(`${apiPath.reviews}/invalid`)).data, null);
   assert.equal((await api.delete(apiPath.reviews)).data, null);

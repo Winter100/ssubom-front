@@ -7,4 +7,5 @@ export const apiPath = {
   myReviews: 'member/reviews',
   categories: 'categories',
   reviews: 'reviews',
+  presignedImages: 'storage/presigned-url',
 } as const;

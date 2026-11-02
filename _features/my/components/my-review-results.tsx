@@ -8,6 +8,7 @@ import ReviewPagination from '@/_features/review/components/list/review-paginati
 import type { ReviewsParams, ReviewType } from '@/_types/review';
 import { getAuthErrorMessage } from '@/_lib/auth-client';
 import { useMyReviews, useReviewDelete } from '../hooks/use-my';
+import { useRouter } from 'next/navigation';
 
 type MyReviewResultsProps = {
   params: ReviewsParams;
@@ -24,9 +25,10 @@ const MyReviewResults = ({
 }: MyReviewResultsProps) => {
   const { data: reviewPage } = useMyReviews(params);
   const deleteDialog = useRef<HTMLDialogElement>(null);
-  const [selectedReview, setSelectedReview] = useState<
-    Pick<ReviewType, 'id' | 'title'> | null
-  >(null);
+  const [selectedReview, setSelectedReview] = useState<Pick<
+    ReviewType,
+    'id' | 'title'
+  > | null>(null);
   const deleting = useRef<boolean>(false);
   const {
     mutate: deleteReview,
@@ -34,6 +36,8 @@ const MyReviewResults = ({
     error: deleteError,
     reset: resetDelete,
   } = useReviewDelete();
+  const router = useRouter();
+
   const closeDeleteDialog = (): void => {
     if (!deleting.current) deleteDialog.current?.close();
   };
@@ -105,10 +109,10 @@ const MyReviewResults = ({
                 >
                   <button
                     type='button'
-                    disabled
-                    title='수정 기능 준비 중'
-                    aria-label={`${review.title} 수정 (준비 중)`}
-                    className='cursor-not-allowed rounded-md px-2 py-1.5 text-xs font-medium text-stone-400'
+                    title='수정 기능'
+                    onClick={() => router.push(`/reviews/edit/${review.id}`)}
+                    aria-label={`${review.title} 수정`}
+                    className='cursor-pointer rounded-md px-2 py-1.5 text-xs font-medium text-stone-400 hover:bg-stone-50'
                   >
                     수정
                   </button>

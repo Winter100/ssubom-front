@@ -27,9 +27,22 @@ export type HandleReviewImage = (
   target: 'cover' | 'body',
 ) => void;
 
-export const useReviewWriter = () => {
+export type ReviewWriterOptions = {
+  initialReview?: ReviewData;
+  onSubmit?: (
+    review: ReviewData,
+    files: ReadonlyMap<string, File>,
+  ) => Promise<void> | void;
+  submitting?: boolean;
+};
+
+export const useReviewWriter = ({
+  initialReview,
+  onSubmit,
+  submitting = false,
+}: ReviewWriterOptions = {}) => {
   const router = useRouter();
-  const [fields, setFields] = useState<ReviewFields>(emptyFields);
+  const [fields, setFields] = useState<ReviewFields>(initialReview ?? emptyFields);
   const [preview, setPreview] = useState<ReviewData | null>(null);
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -37,7 +50,8 @@ export const useReviewWriter = () => {
   const [resetVersion, setResetVersion] = useState<number>(0);
   const imageFiles = useRef<Map<string, File>>(new Map());
   const createReviewMutation = useCreateReview();
-  const isSubmitting = createReviewMutation.isPending;
+  const isSubmitting = submitting || createReviewMutation.isPending;
+  const submissionPending = useRef(false);
 
   useEffect(() => {
     const files = imageFiles.current;
@@ -62,7 +76,10 @@ export const useReviewWriter = () => {
     {
       extensions: createExtensions(),
       immediatelyRender: false,
-      content: { type: 'doc', content: [{ type: 'paragraph' }] },
+      content: initialReview?.body ?? {
+        type: 'doc',
+        content: [{ type: 'paragraph' }],
+      },
       editorProps: {
         attributes: {
           class: `${richTextClasses} min-h-80 px-5 py-4 outline-none sm:px-7`,
@@ -72,6 +89,7 @@ export const useReviewWriter = () => {
         },
       },
       onCreate: async ({ editor: current }) => {
+        if (initialReview) return;
         setReadingImage(true);
         try {
           const restored = await restoreReviewDraft(current, imageFiles.current);
@@ -95,7 +113,7 @@ export const useReviewWriter = () => {
     key: K,
     value: ReviewFields[K],
   ) => {
-    if (isSubmitting) return;
+    if (isSubmitting || submissionPending.current) return;
     setFields((current) => ({ ...current, [key]: value }));
     setMessage('');
   };
@@ -106,7 +124,7 @@ export const useReviewWriter = () => {
   ) => {
     const file = event.currentTarget.files?.[0];
     event.currentTarget.value = '';
-    if (!file || !editor || isSubmitting) return;
+    if (!file || !editor || isSubmitting || submissionPending.current) return;
     if (
       target === 'body' &&
       countBodyImages(editor.getJSON()) >= MAX_BODY_IMAGES
@@ -161,8 +179,10 @@ export const useReviewWriter = () => {
     }
   };
 
-  const submitReview = () => {
-    if (!editor || readingImage || isSubmitting) return;
+  const submitReview = async () => {
+    if (!editor || readingImage || isSubmitting || submissionPending.current) {
+      return;
+    }
     if (!hasRequiredReviewFields(fields)) {
       setError('필수 항목과 평점 범위를 확인해 주세요.');
       return;
@@ -170,6 +190,21 @@ export const useReviewWriter = () => {
 
     setError('');
     setMessage('');
+    if (onSubmit) {
+      submissionPending.current = true;
+      try {
+        await onSubmit(
+          { ...fields, body: editor.getJSON() },
+          new Map(imageFiles.current),
+        );
+      } catch (cause: unknown) {
+        setError(getAuthErrorMessage(cause, '리뷰 수정에 실패했습니다.'));
+      } finally {
+        submissionPending.current = false;
+      }
+      return;
+    }
+    submissionPending.current = true;
     createReviewMutation.mutate(
       {
         review: { ...fields, body: editor.getJSON() },
@@ -193,6 +228,9 @@ export const useReviewWriter = () => {
         },
         onError: (cause) => {
           setError(getAuthErrorMessage(cause, '리뷰 생성에 실패했습니다.'));
+        },
+        onSettled: () => {
+          submissionPending.current = false;
         },
       },
     );

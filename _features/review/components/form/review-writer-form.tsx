@@ -27,7 +27,8 @@ type ReviewWriterFormProps = {
   handleImage: HandleReviewImage;
   categoryList: CategoryType[];
   submitReview: () => void;
-  saveDraft: () => void;
+  saveDraft?: () => void;
+  submitLabel?: string;
 };
 
 const ReviewWriterForm = ({
@@ -40,6 +41,7 @@ const ReviewWriterForm = ({
   submitReview,
   categoryList,
   saveDraft,
+  submitLabel = '등록',
 }: ReviewWriterFormProps) => {
   const [submitAttempted, setSubmitAttempted] = useState<boolean>(false);
   const busy = readingImage || isSubmitting;
@@ -138,14 +140,16 @@ const ReviewWriterForm = ({
         </section>
         <div>
           <div className='flex items-center gap-2'>
-            <button
-              type='button'
-              onClick={saveDraft}
-              disabled={!editor || busy}
-              className='cursor-pointer rounded-full border border-stone-200 px-4 py-2.5 text-xs font-medium hover:bg-stone-100 disabled:opacity-40'
-            >
-              임시 저장
-            </button>
+            {saveDraft && (
+              <button
+                type='button'
+                onClick={saveDraft}
+                disabled={!editor || busy}
+                className='cursor-pointer rounded-full border border-stone-200 px-4 py-2.5 text-xs font-medium hover:bg-stone-100 disabled:opacity-40'
+              >
+                임시 저장
+              </button>
+            )}
             {/* <button
               type='button'
               disabled={!editor || busy}
@@ -160,14 +164,16 @@ const ReviewWriterForm = ({
               disabled={busy}
               className='cursor-pointer rounded-full bg-[#23745b] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#185b46] disabled:opacity-40'
             >
-              {isSubmitting ? '등록 중…' : '등록'}
+              {isSubmitting ? `${submitLabel} 중…` : submitLabel}
             </button>
           </div>
         </div>
-        <p className='px-2 text-[10px] leading-6 text-stone-400'>
-          임시 저장은 이 브라우저에만 보관됩니다. 이미지를 많이 넣으면 저장
-          공간이 부족할 수 있어요. 다른 기기와 공유되지는 않습니다.
-        </p>
+        {saveDraft && (
+            <p className='px-2 text-[10px] leading-6 text-stone-400'>
+              임시 저장은 이 브라우저에만 보관됩니다. 이미지를 많이 넣으면 저장
+              공간이 부족할 수 있어요. 다른 기기와 공유되지는 않습니다.
+            </p>
+        )}
       </aside>
     </fieldset>
   );

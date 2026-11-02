@@ -14,6 +14,7 @@ export type CategoryType = {
 export type ReviewType = {
   id: number;
   title: string;
+  product: string;
   category: CategoryType;
   rating: number;
   createdAt: string;
