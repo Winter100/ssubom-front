@@ -6,6 +6,7 @@ import { richTextClasses } from '../../lib/editor-config';
 import { getReviewImageUrl } from '../../lib/review-image';
 import ReviewBody from './review-body';
 import CategoryLabel from '../category-label';
+import ReviewComments from './review-comments';
 
 const ReviewDetailContainer = ({ id }: { id: string }) => {
   const { data: review } = useDetailReview(id);
@@ -189,6 +190,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
               {review.verdict?.trim() || '등록된 추천 내용이 없습니다.'}
             </p>
           </section>
+          <ReviewComments reviewId={id} />
         </article>
         <aside className='space-y-5 lg:sticky lg:top-8'>
           <section className='rounded-2xl border border-stone-200 bg-white p-6'>
@@ -236,6 +238,10 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
                 { href: '#review-story', label: '직접 써본 이야기' },
                 { href: '#review-points', label: '좋았던 점과 아쉬운 점' },
                 { href: '#review-verdict', label: '이런 분께 추천해요' },
+                {
+                  href: '#review-comments',
+                  label: '댓글과 함께 나누는 이야기',
+                },
               ].map(({ href, label }, index) => (
                 <li key={href}>
                   <a

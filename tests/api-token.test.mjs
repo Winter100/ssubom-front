@@ -44,6 +44,18 @@ test('configured apiPath values attach tokens only for the registered methods', 
   assert.equal((await api.get(apiPath.presignedImages)).data, null);
   assert.equal((await api.put(`${apiPath.reviews}/42/edit`)).data, null);
   assert.equal((await api.delete(`${apiPath.reviews}/42/comments`)).data, null);
+  assert.equal((await api.post(`${apiPath.reviews}/42/comments`)).data, 'Bearer token');
+  for (const method of ['put', 'delete']) {
+    assert.equal((await api[method](`${apiPath.reviews}/42/comments/7`)).data, 'Bearer token');
+    assert.equal((await api[method](`${apiPath.reviews}/42/comments/7?tab=x`)).data, 'Bearer token');
+    for (const path of ['reviews/42/comments', 'reviews/42/comments/0', 'reviews/42/comments/7/extra',
+      'reviews/invalid/comments/7', 'reviews/42/comments/invalid', 'reviews/42/other/7']) {
+      assert.equal((await api[method](path)).data, null, `${method} ${path}`);
+    }
+  }
+  assert.equal((await api.get(`${apiPath.reviews}/42/comments`)).data, null);
+  assert.equal((await api.get(`${apiPath.reviews}/42/comments/7`)).data, null);
+  assert.equal((await api.post(`${apiPath.reviews}/42/comments/7`)).data, null);
   assert.equal((await api.delete(`${apiPath.reviews}/invalid`)).data, null);
   assert.equal((await api.delete(apiPath.reviews)).data, null);
 });
