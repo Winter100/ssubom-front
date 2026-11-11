@@ -5,6 +5,7 @@ export const apiPath = {
   refresh: 'auth/refresh',
   me: 'member',
   myReviews: 'member/reviews',
+  myReviewCounts: 'member/count',
   categories: 'categories',
   reviews: 'reviews',
   presignedImages: 'storage/presigned-url',

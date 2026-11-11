@@ -1,11 +1,30 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { LoginInput, LoginResponse, SignupInput, User } from '@/_types/auth';
+import type {
+  LoginInput,
+  LoginResponse,
+  SignupInput,
+  User,
+} from '@/_types/auth';
 import { authKeys } from '../constant/auth.keys';
-import { getMe } from '@/_lib/api/get-api';
-import { login, logout, signup } from '@/_lib/api/post-api';
-import { ApiError, refreshAccessToken } from '@/_lib/api/api';
+import { api, ApiError, refreshAccessToken } from '@/_lib/api/api';
 import { getAccessToken, setAccessToken } from '../stores/tokenStore';
 import { clearSession } from '../lib/session';
+import { apiPath } from '@/_constant/api-path';
+import { getReviewImageUrl } from '@/_features/review/lib/review-image';
+
+// 로그인
+export const login = async (input: LoginInput): Promise<LoginResponse> => {
+  const response = await api.post<LoginResponse>(apiPath.login, input, {
+    withCredentials: true,
+  });
+  return {
+    ...response.data,
+    user: {
+      ...response.data.user,
+      profileImage: getReviewImageUrl(response.data.user.profileImage),
+    },
+  };
+};
 
 export const useLogin = () => {
   const queryClient = useQueryClient();
@@ -28,6 +47,11 @@ export const useLogin = () => {
   });
 };
 
+// 로그아웃
+const logout = async (): Promise<void> => {
+  await api.post(apiPath.logout, undefined, { withCredentials: true });
+};
+
 export const useLogout = () => {
   const queryClient = useQueryClient();
 
@@ -39,6 +63,11 @@ export const useLogout = () => {
   });
 };
 
+// 회원가입
+const signup = async (input: SignupInput): Promise<void> => {
+  await api.post(apiPath.signup, input);
+};
+
 export const useSignup = () => {
   return useMutation({
     mutationFn: (input: SignupInput) => signup(input),
@@ -47,11 +76,21 @@ export const useSignup = () => {
   });
 };
 
+// 내 정보
+const getMe = async (signal?: AbortSignal): Promise<User> => {
+  const response = await api.get<User>(apiPath.me, { signal });
+  return {
+    ...response.data,
+    profileImage: getReviewImageUrl(response.data.profileImage),
+  };
+};
+
 export const useMe = () => {
   return useQuery({
     queryKey: authKeys.me(),
     queryFn: async ({ signal }): Promise<User | null> => {
-      if (!getAccessToken() && localStorage.getItem('hasSession') !== '1') return null;
+      if (!getAccessToken() && localStorage.getItem('hasSession') !== '1')
+        return null;
       try {
         return await getMe(signal);
       } catch (error: unknown) {

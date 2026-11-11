@@ -30,10 +30,17 @@ test('configured apiPath values attach tokens only for the registered methods', 
     data: config.headers.get('Authorization') ?? null,
   });
   assert.equal((await api.get(apiPath.me)).data, 'Bearer token');
+  assert.equal((await api.post(apiPath.me, { nickName: '변경' })).data, 'Bearer token');
+  assert.equal((await api.get(apiPath.myReviewCounts)).data, 'Bearer token');
+  assert.equal((await api.post(apiPath.myReviewCounts)).data, null);
   assert.equal((await api.post(apiPath.reviews)).data, 'Bearer token');
-  assert.equal((await api.get(apiPath.reviews)).data, null);
+  assert.equal((await api.get(apiPath.reviews)).data, 'Bearer token');
   assert.equal((await api.delete(`${apiPath.reviews}/42`)).data, 'Bearer token');
-  assert.equal((await api.get(`${apiPath.reviews}/42`)).data, null);
+  assert.equal((await api.get(`${apiPath.reviews}/42`)).data, 'Bearer token');
+  assert.equal((await api.put(`${apiPath.reviews}/42/like`)).data, 'Bearer token');
+  assert.equal((await api.delete(`${apiPath.reviews}/42/like`)).data, 'Bearer token');
+  assert.equal((await api.post(`${apiPath.reviews}/42/like`)).data, null);
+  assert.equal((await api.get(`${apiPath.reviews}/42/comments`)).data, null);
   assert.equal((await api.get(`${apiPath.reviews}/42/edit`)).data, 'Bearer token');
   assert.equal((await api.get(`${apiPath.reviews}/42/edit?tab=body`)).data, 'Bearer token');
   assert.equal((await api.post(`${apiPath.reviews}/42/edit`)).data, null);

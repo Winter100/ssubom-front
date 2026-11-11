@@ -1,12 +1,28 @@
 import { apiPath } from '@/_constant/api-path';
 import { reviewKeys } from '@/_features/review/constant/review.keys';
 import { api } from '@/_lib/api/api';
-import type { ReviewsPage, ReviewsParams } from '@/_types/review';
+import type {
+  ReviewCategoryCount,
+  ReviewsPage,
+  ReviewsParams,
+} from '@/_types/review';
 import {
   useMutation,
+  useQuery,
   useQueryClient,
   useSuspenseQuery,
 } from '@tanstack/react-query';
+
+export const useMyReviewCounts = () =>
+  useQuery({
+    queryKey: reviewKeys.memberReviewCounts(),
+    queryFn: async ({ signal }): Promise<ReviewCategoryCount[]> => {
+      const response = await api.get<ReviewCategoryCount[]>(apiPath.myReviewCounts, {
+        signal,
+      });
+      return response.data;
+    },
+  });
 
 // 내 리뷰 목록
 const getMyReviews = async (

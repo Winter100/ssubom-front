@@ -10,8 +10,14 @@ type AuthApiRoute = {
 
 export const authApiPaths: readonly AuthApiRoute[] = [
   { method: 'GET', path: apiPath.me },
+  { method: 'POST', path: apiPath.me },
   { method: 'GET', path: apiPath.myReviews },
+  { method: 'GET', path: apiPath.myReviewCounts },
   { method: 'GET', path: apiPath.reviews, withId: true, suffix: '/edit' },
+  { method: 'PUT', path: apiPath.reviews, withId: true, suffix: '/like' },
+  { method: 'DELETE', path: apiPath.reviews, withId: true, suffix: '/like' },
+  { method: 'GET', path: apiPath.reviews, withId: true },
+  { method: 'GET', path: apiPath.reviews },
   { method: 'POST', path: apiPath.reviews },
   { method: 'POST', path: apiPath.presignedImages },
   { method: 'PUT', path: apiPath.reviews, withId: true },

@@ -7,6 +7,7 @@ import { getReviewImageUrl } from '../../lib/review-image';
 import ReviewBody from './review-body';
 import CategoryLabel from '../category-label';
 import ReviewComments from './review-comments';
+import ReviewHelpful from './review-helpful';
 
 const ReviewDetailContainer = ({ id }: { id: string }) => {
   const { data: review } = useDetailReview(id);
@@ -31,7 +32,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
                 <div className='mr-auto inline-flex items-center gap-2 text-xs text-stone-600'>
                   <Image
                     key={review.author.profileImage}
-                    src={review.author.profileImage || '/default-profile.svg'}
+                    src={getReviewImageUrl(review.author.profileImage) || '/default-profile.svg'}
                     alt=''
                     width={24}
                     height={24}
@@ -222,6 +223,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
                 </dd>
               </div>
             </dl>
+            <ReviewHelpful reviewId={id} isLike={review.isLike} countLike={review.likeCount} />
           </section>
           <nav
             aria-label='리뷰 바로가기'

@@ -11,6 +11,12 @@ export type CategoryType = {
   category: string;
 };
 
+export type ReviewCategoryCount = {
+  categoryId: number;
+  category: string;
+  count: number;
+};
+
 export type ReviewType = {
   id: number;
   title: string;
@@ -26,6 +32,8 @@ export type ReviewType = {
   cons?: string[];
   verdict?: string;
   viewCount: number;
+  isLike: boolean;
+  likeCount: number;
 };
 
 export type ReviewsPage = {

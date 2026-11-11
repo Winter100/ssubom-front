@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" fill="none">
+  <rect width="640" height="480" rx="24" fill="#F1F4EF"/>
+  <circle cx="320" cy="218" r="124" fill="#E5ECE2"/>
+  <ellipse cx="320" cy="326" rx="99" ry="14" fill="#D4DED0"/>
+  <path d="m320 125 91 49v105l-91 51-91-51V174l91-49Z" fill="#FAFCF8" stroke="#80967C" stroke-width="3" stroke-linejoin="round"/>
+  <path d="m229 174 91 51 91-51M320 225v105" stroke="#80967C" stroke-width="3" stroke-linejoin="round"/>
+  <path d="m276 149 91 51v39l-27 15v-39l-91-51" fill="#C1D2BA"/>
+  <path d="m255 265 31 17m-31-5 20 11" stroke="#A0B29A" stroke-width="4" stroke-linecap="round"/>
+  <text x="320" y="388" fill="#687D63" font-family="sans-serif" font-size="17" text-anchor="middle">등록된 이미지가 없어요</text>
+</svg>

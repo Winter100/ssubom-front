@@ -8,6 +8,7 @@ export const reviewKeys = {
   detail: (reviewId: string) => [...reviewKeys.details(), reviewId],
   categories: () => [...reviewKeys.all, 'categories'],
   memberReviews: () => [...reviewKeys.all, 'memberReviews'],
+  memberReviewCounts: () => [...reviewKeys.all, 'memberReviewCounts'],
   memberReview: (reviewId: string) => [
     ...reviewKeys.all,
     'memberReviews',

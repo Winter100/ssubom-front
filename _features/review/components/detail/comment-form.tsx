@@ -6,6 +6,7 @@ import type { User } from '@/_types/auth';
 import { ApiError } from '@/_lib/api/api';
 import { getAuthErrorMessage } from '@/_lib/auth-client';
 import { COMMENT_CONTENT_LIMIT } from '../../lib/comment-api';
+import { getReviewImageUrl } from '../../lib/review-image';
 
 type CommentFormProps = {
   user: User;
@@ -72,7 +73,7 @@ const CommentForm = ({
       <div className='flex items-center gap-2'>
         <Image
           key={user.profileImage}
-          src={user.profileImage || '/default-profile.svg'}
+          src={getReviewImageUrl(user.profileImage) || '/default-profile.svg'}
           alt=''
           width={32}
           height={32}

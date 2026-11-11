@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import type { ReviewType } from '../../../_types/review';
 import { getReviewImageUrl } from '../lib/review-image';
 import CategoryLabel from './category-label';
+import ReviewHelpfulCount from './review-helpful-count';
 
 type ReviewCardProps = {
   review: ReviewType;
@@ -61,7 +62,7 @@ const ReviewCard = ({ review, imageSrc, actions }: ReviewCardProps) => (
         <div className='mr-auto inline-flex items-center gap-2 text-xs text-stone-600'>
           <Image
             key={review.author.profileImage}
-            src={review.author.profileImage || '/default-profile.svg'}
+            src={getReviewImageUrl(review.author.profileImage) || '/default-profile.svg'}
             alt=''
             width={24}
             height={24}
@@ -91,6 +92,7 @@ const ReviewCard = ({ review, imageSrc, actions }: ReviewCardProps) => (
             <span className='sr-only'>조회수 </span>
             {review.viewCount.toLocaleString('ko-KR')}
           </span>
+          <ReviewHelpfulCount isLike={review.isLike} count={review.likeCount} />
         </div>
         <div className='flex items-center gap-3 whitespace-nowrap text-[11px] text-stone-500 tabular-nums'>
           <time

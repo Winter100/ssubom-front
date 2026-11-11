@@ -13,7 +13,7 @@ const load = (file, overrides) => {
   }).outputText;
   const compiled = { exports: {} };
   new Function('require', 'module', 'exports', source)(
-    (name) => overrides[name] ?? dependency(name), compiled, compiled.exports,
+    (name) => overrides[name] ?? (name === '@/_features/review/components/list/review-grid-skeleton' ? { __esModule: true, default: 'ReviewGridSkeleton' } : dependency(name)), compiled, compiled.exports,
   );
   return compiled.exports;
 };
@@ -91,43 +91,57 @@ test('my reviews use a suspense query with page/category cache keys and cancella
 });
 
 test('only authenticated users mount the protected feed inside the shared query boundary', () => {
-  let user = null;
+  let user;
+  let isPending = true;
   const routes = [];
   const Page = load('_features/my/components/mypage-content.tsx', {
-    react: { useEffect: (effect) => effect() },
+    react: { useEffect: (effect) => effect(), useState: () => [{ page: 1 }, () => {}] },
     'next/link': { __esModule: true, default: 'a' },
     'next/navigation': { useRouter: () => ({ replace: (route) => routes.push(route) }) },
-    '@/_features/auth/hooks/use-auth': { useMe: () => ({ data: user, isPending: false }) },
+    '@/_features/auth/hooks/use-auth': { useMe: () => ({ data: user, isPending }) },
+    '@/_features/auth/components/login-link': { __esModule: true, default: 'LoginLink' },
     '@/_lib/auth-client': { getAuthErrorMessage: (error) => error.message },
     '@/_features/review/components/reviews-query-boundary': boundary,
     './my-reviews-feed': { __esModule: true, default: 'MyReviewsFeed' },
+    './my-review-counts': { __esModule: true, default: 'MyReviewCounts' },
+    './profile-image-form': { __esModule: true, default: 'ProfileImageForm' },
   }).default;
-  assert.equal(findAll(Page(), (node) => node.type === 'MyReviewsFeed').length, 0);
+  const assertNoContent = (tree) => {
+    assert.equal(findAll(tree, (node) => node.type === 'MyReviewsFeed').length, 0);
+    assert.equal(findAll(tree, (node) => node.props?.id === 'mypage-title').length, 0);
+    assert.equal(findAll(tree, (node) => node.type === 'dl').length, 0);
+    assert.equal(findAll(tree, (node) => node.type === 'ProfileImageForm').length, 0);
+  };
+  assertNoContent(Page());
+  assert.deepEqual(routes, []);
+  user = null;
+  isPending = false;
+  assertNoContent(Page());
   assert.deepEqual(routes, ['/login']);
-  user = { nickname: '독자', email: 'reader@example.com' };
+  user = { id: 7, nickname: '독자', email: 'reader@example.com', profileImage: '/profile.png' };
+  const profile = findAll(Page(), (node) => node.type === 'ProfileImageForm')[0];
+  assert.equal(profile.props.profileImage, user.profileImage);
+  assert.equal(profile.key, '7');
   const wrapper = findAll(Page(), (node) => node.type === 'ReviewsQueryBoundary')[0];
   assert.equal(wrapper.props.children.type, 'MyReviewsFeed');
 });
 
-test('feed uses the shared category hook and resets pagination when categories change', () => {
-  let state = { page: 1 };
+test('feed forwards shared filters and pagination without rendering separate filter controls', () => {
   const Feed = load('_features/my/components/my-reviews-feed.tsx', {
-    react: { useState: () => [state, (next) => { state = next; }] },
-    '@/_features/review/hooks/use-review': { useCategories: () => ({ data: [{ id: 2, category: '디지털' }] }) },
     '@/_features/review/components/reviews-query-boundary': boundary,
     './my-review-results': { __esModule: true, default: 'MyReviewResults' },
-    '@/_features/review/components/category-label': { __esModule: true, default: 'CategoryLabel' },
   }).default;
-  const results = (tree) => findAll(tree, (node) => node.type === 'MyReviewResults')[0];
-  results(Feed()).props.onPageChange(3);
-  findAll(Feed(), (node) => node.type === 'button' && node.props.children?.props?.category === '디지털')[0].props.onClick();
-  let tree = Feed();
-  assert.deepEqual(results(tree).props.params, { page: 1, categoryId: 2, size: 10 });
-  const wrapper = findAll(tree, (node) => node.type === 'ReviewsQueryBoundary')[0];
-  assert.deepEqual(wrapper.props.resetKeys, [1, 2]);
-  assert.equal(findAll(tree, (node) => node.type === 'input').length, 0);
-  findAll(tree, (node) => node.type === 'button' && node.props.children === '필터 초기화')[0].props.onClick();
-  assert.deepEqual(results(Feed()).props.params, { page: 1, size: 10 });
+  const pages = [];
+  let resets = 0;
+  const tree = Feed({ page: 3, categoryId: 2, onPageChange: (page) => pages.push(page), onReset: () => { resets++; } });
+  const results = findAll(tree, (node) => node.type === 'MyReviewResults')[0];
+  assert.deepEqual(results.props.params, { page: 3, categoryId: 2, size: 30 });
+  results.props.onPageChange(4);
+  results.props.onPageCorrection(1);
+  results.props.onReset();
+  assert.deepEqual(pages, [4, 1]);
+  assert.equal(resets, 1);
+  assert.equal(findAll(tree, (node) => node.type === 'button').length, 0);
 });
 
 const resultsView = (data, params = { page: 1, size: 10 }) => {
@@ -165,8 +179,8 @@ const resultsView = (data, params = { page: 1, size: 10 }) => {
     'next/link': { __esModule: true, default: 'a' },
     '../hooks/use-my': { useMyReviews: () => ({ data }), useReviewDelete: () => mutation },
     '@/_lib/auth-client': { getAuthErrorMessage: (error) => error.message },
-    '@/_features/review/components/review-card': { __esModule: true, default: 'ReviewCard' },
-    '@/_features/review/components/list/review-list-skeleton': { __esModule: true, default: 'ReviewListSkeleton' },
+    '@/_features/review/components/review-image-card': { __esModule: true, default: 'ReviewImageCard' },
+    '@/_features/review/components/list/review-grid-skeleton': { __esModule: true, default: 'ReviewGridSkeleton' },
     '@/_features/review/components/list/review-pagination': { __esModule: true, default: 'ReviewPagination' },
   }).default;
   const render = () => {
@@ -179,8 +193,9 @@ const resultsView = (data, params = { page: 1, size: 10 }) => {
 test('server reviews pass compact management actions into each card without footer wrappers', () => {
   const reviews = [{ id: 1, title: '나의 리뷰' }, { id: 2, title: '다음 리뷰' }];
   const { tree, pages, routes } = resultsView(pageData(reviews, { totalElements: 25, totalPages: 3 }));
-  const cards = findAll(tree, (node) => node.type === 'ReviewCard');
+  const cards = findAll(tree, (node) => node.type === 'ReviewImageCard');
   assert.deepEqual(cards.map((card) => card.props.review), reviews);
+  assert.ok(findAll(tree, (node) => node.props?.className === 'grid grid-cols-1 gap-5 py-7 sm:grid-cols-2 lg:grid-cols-3').length);
   assert.equal(findAll(tree, (node) => node.props?.className === 'pb-5').length, 0);
   for (const card of cards) {
     const buttons = findAll(card.props.actions, (node) => node.type === 'button');
@@ -201,7 +216,7 @@ test('server reviews pass compact management actions into each card without foot
 test('delete opens a native modal for the selected review; cancel and backdrop close without deletion', () => {
   const reviews = [{ id: 1, title: '첫 번째 리뷰' }, { id: 2, title: '두 번째 리뷰' }];
   const view = resultsView(pageData(reviews));
-  const cards = findAll(view.tree, (node) => node.type === 'ReviewCard');
+  const cards = findAll(view.tree, (node) => node.type === 'ReviewImageCard');
   const deleteButton = findAll(cards[1].props.actions, (node) => node.type === 'button' && node.props.children === '삭제')[0];
   deleteButton.props.onClick();
   assert.deepEqual(view.dialogCalls, ['open']);
@@ -221,13 +236,13 @@ test('delete opens a native modal for the selected review; cancel and backdrop c
   assert.deepEqual(view.dialogCalls, ['open', 'close', 'open']);
   modal.props.onClick({ target: view.dialog, currentTarget: view.dialog });
   assert.deepEqual(view.dialogCalls, ['open', 'close', 'open', 'close']);
-  assert.equal(findAll(view.render(), (node) => node.type === 'ReviewCard').length, 2);
+  assert.equal(findAll(view.render(), (node) => node.type === 'ReviewImageCard').length, 2);
   assert.equal(view.deleteCalls.length, 0);
 });
 
 test('confirm deletes the selected ID once, prevents dismissing in flight, and closes after success', () => {
   const view = resultsView(pageData([{ id: 7, title: '삭제할 리뷰' }]));
-  const card = findAll(view.tree, (node) => node.type === 'ReviewCard')[0];
+  const card = findAll(view.tree, (node) => node.type === 'ReviewImageCard')[0];
   findAll(card.props.actions, (node) => node.props?.children === '삭제')[0].props.onClick();
   const modal = () => findAll(view.render(), (node) => node.type === 'dialog')[0];
   const confirm = findAll(modal(), (node) => node.type === 'button' && node.props.children === '삭제')[0];
@@ -250,7 +265,7 @@ test('confirm deletes the selected ID once, prevents dismissing in flight, and c
 
 test('failed deletion keeps the dialog open, displays the error and allows retry', () => {
   const view = resultsView(pageData([{ id: 7, title: '삭제할 리뷰' }]));
-  const card = findAll(view.tree, (node) => node.type === 'ReviewCard')[0];
+  const card = findAll(view.tree, (node) => node.type === 'ReviewImageCard')[0];
   findAll(card.props.actions, (node) => node.props?.children === '삭제')[0].props.onClick();
   const confirm = () => findAll(findAll(view.render(), (node) => node.type === 'dialog')[0], (node) => node.type === 'button' && node.props.children === '삭제')[0];
   confirm().props.onClick();
@@ -272,5 +287,5 @@ test('empty categories can reset and pages beyond the server total are corrected
   assert.equal(filtered.resetCount(), 1);
   const corrected = resultsView(pageData([], { page: 3, totalPages: 2 }), { page: 3, size: 10 });
   assert.deepEqual(corrected.corrections, [2]);
-  assert.equal(corrected.tree.type, 'ReviewListSkeleton');
+  assert.equal(corrected.tree.type, 'ReviewGridSkeleton');
 });

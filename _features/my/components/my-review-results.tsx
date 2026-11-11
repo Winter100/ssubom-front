@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import ReviewCard from '@/_features/review/components/review-card';
+import ReviewImageCard from '@/_features/review/components/review-image-card';
 import ReviewEmptyState from '@/_features/review/components/review-empty-state';
-import ReviewListSkeleton from '@/_features/review/components/list/review-list-skeleton';
+import ReviewGridSkeleton from '@/_features/review/components/list/review-grid-skeleton';
 import ReviewPagination from '@/_features/review/components/list/review-pagination';
 import type { ReviewsParams, ReviewType } from '@/_types/review';
 import { getAuthErrorMessage } from '@/_lib/auth-client';
@@ -62,16 +62,16 @@ const MyReviewResults = ({
     if (needsPageCorrection) onPageCorrection(lastPage);
   }, [needsPageCorrection, lastPage, onPageCorrection]);
 
-  if (needsPageCorrection) return <ReviewListSkeleton count={params.size} />;
+  if (needsPageCorrection) return <ReviewGridSkeleton count={params.size} />;
 
   return (
     <>
       {reviewPage.content.length === 0 ? (
         <ReviewEmptyState variant='member' hasFilters={hasFilters} onReset={onReset} />
       ) : (
-        <div className='divide-y divide-stone-200/70'>
+        <div className='grid grid-cols-1 gap-5 py-7 sm:grid-cols-2 lg:grid-cols-3'>
           {reviewPage.content.map((review) => (
-            <ReviewCard
+            <ReviewImageCard
               key={review.id}
               review={review}
               actions={

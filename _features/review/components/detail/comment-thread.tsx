@@ -5,6 +5,7 @@ import { useState } from 'react';
 import type { User } from '@/_types/auth';
 import type { CommentAction, ReviewComment } from '@/_types/comment';
 import CommentForm from './comment-form';
+import { getReviewImageUrl } from '../../lib/review-image';
 
 const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
   timeZone: 'Asia/Seoul',
@@ -26,13 +27,16 @@ type CommentItemProps = {
 
 const CommentItem = ({ comment, user, isReply, busy, onEdit, onReply, onDelete }: CommentItemProps) => {
   const own = !comment.deleted && Boolean(user && user.id === comment.author?.id);
+  const profileImage = getReviewImageUrl(
+    own ? user?.profileImage : comment.author?.profileImage,
+  ) || '/default-profile.svg';
 
   return (
     <article aria-label={isReply ? '답글' : '댓글'} className='flex min-w-0 gap-3'>
       {!comment.deleted && (
         <Image
-          key={comment.author?.profileImage}
-          src={comment.author?.profileImage || '/default-profile.svg'}
+          key={profileImage}
+          src={profileImage}
           alt=''
           width={36}
           height={36}

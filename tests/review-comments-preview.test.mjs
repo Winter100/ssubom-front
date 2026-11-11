@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import ts from 'typescript';
 
 const dependency = createRequire(import.meta.url);
-const user = { id: 10, nickname: '로그인 사용자', profileImage: '/profile.jpg' };
+const user = { id: 10, nickname: '로그인 사용자', profileImage: 'https://images.example.com/profile.jpg' };
 const makeComment = (id, authorId = 10) => ({
   id, parentId: null, content: `내용 ${id}`, deleted: false,
   createdAt: '2026-11-03T03:00:00Z',
@@ -47,6 +47,7 @@ const load = (filename, overrides = {}) => {
       useCommentAction: () => ({ isPending: false, mutateAsync: async () => {} }),
     };
     if (name.endsWith('/lib/comment-api')) return { COMMENT_CONTENT_LIMIT: 1000 };
+    if (name.endsWith('/lib/review-image')) return load('_features/review/lib/review-image.ts', overrides);
     if (name.startsWith('.')) return load(path.resolve(path.dirname(filename), `${name}.tsx`), overrides);
     return dependency(name);
   }, compiled, compiled.exports);
@@ -95,8 +96,36 @@ test('real authors, ownership, Korea time and deleted parents with replies rende
   assert.match(articles[2], /삭제된 댓글입니다/);
   assert.doesNotMatch(articles[2], /<img|<button|작성자/);
   assert.match(articles[3], /내용 4/);
-  assert.match(html, /src="\/profile.jpg"/);
+  assert.match(html, /src="https:\/\/images.example.com\/profile.jpg"/);
   assert.match(html, /aria-label="댓글 등록"/);
+});
+
+test('own comments and replies use the latest profile while other authors keep their own image', () => {
+  const previousBase = process.env.NEXT_PUBLIC_IMAGE_URL;
+  process.env.NEXT_PUBLIC_IMAGE_URL = 'https://images.example.com';
+  try {
+    resetComments();
+    commentState.threads[0].author.profileImage = 'reviews/old';
+    commentState.threads[0].replies[0].author.profileImage = 'reviews/other';
+    authState = { data: { ...user, profileImage: 'reviews/current' }, isPending: false };
+    const html = render();
+    const articles = [...html.matchAll(/<article\b[^>]*>(.*?)<\/article>/gs)].map(([article]) => article);
+    assert.match(articles[0], /src="https:\/\/images.example.com\/reviews\/current"/);
+    assert.match(articles[1], /src="https:\/\/images.example.com\/reviews\/other"/);
+    assert.match(articles[3], /src="https:\/\/images.example.com\/reviews\/current"/);
+    assert.doesNotMatch(html, /reviews\/old/);
+    const form = html.slice(html.indexOf('<form'));
+    assert.match(form, /src="https:\/\/images.example.com\/reviews\/current"/);
+    authState = { data: { ...user, profileImage: null }, isPending: false };
+    const withoutImage = render();
+    assert.match(withoutImage, /src="\/default-profile.svg"/);
+    assert.doesNotMatch(withoutImage, /reviews\/old/);
+  } finally {
+    if (previousBase === undefined) delete process.env.NEXT_PUBLIC_IMAGE_URL;
+    else process.env.NEXT_PUBLIC_IMAGE_URL = previousBase;
+    authState = { data: user, isPending: false };
+    resetComments();
+  }
 });
 
 test('anonymous or pending auth hides form and controls but preserves public comments; session key changes', () => {
