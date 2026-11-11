@@ -1,9 +1,10 @@
 'use client';
 
 import { project } from '@/_constant/web';
-import { useMe } from '@/_features/auth/hooks/use-auth';
+import { useLogout, useMe } from '@/_features/auth/hooks/use-auth';
 import Image from 'next/image';
 import Link from 'next/link';
+import LoginLink from '@/_features/auth/components/login-link';
 
 const Header = () => {
   return (
@@ -75,7 +76,6 @@ const Header = () => {
           <HeaderAuthNavigation />
         </nav>
       </div>
-      {/* <HeaderAuthError /> */}
     </header>
   );
 };
@@ -84,8 +84,7 @@ export default Header;
 
 const HeaderAuthNavigation = () => {
   const { data: user, isPending } = useMe();
-
-
+  const { mutate } = useLogout();
 
   return isPending ? (
     <span role='status' className='px-4 py-2 text-stone-500'>
@@ -161,29 +160,20 @@ const HeaderAuthNavigation = () => {
         >
           리뷰 쓰기
         </Link>
+        <button
+          type='button'
+          onClick={() => mutate()}
+          className='block w-full cursor-pointer rounded-xl px-3 py-2.5 text-left font-medium text-stone-700 transition-colors hover:bg-emerald-50 hover:text-[#23745b] focus-visible:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-[#23745b]'
+        >
+          로그아웃
+        </button>
       </div>
     </details>
   ) : (
-    <Link
-      href='/login'
+    <LoginLink
       className='rounded-full bg-[#23745b] px-4 py-2 text-xs font-medium text-white hover:bg-[#185b46]'
     >
       로그인
-    </Link>
-  );
-};
-
-const HeaderAuthError = () => {
-  const { error } = useMe();
-
-  return (
-    error && (
-      <p
-        role='status'
-        className='mx-auto max-w-7xl px-5 pb-3 text-xs text-stone-600 sm:px-10'
-      >
-        {error.message}
-      </p>
-    )
+    </LoginLink>
   );
 };

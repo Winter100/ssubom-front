@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useDetailReview } from '../../hooks/use-review';
 import { richTextClasses } from '../../lib/editor-config';
 import { getReviewImageUrl } from '../../lib/review-image';
@@ -21,10 +22,10 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
               01 · THE BASICS
             </p>
             <div className='mt-5'>
-              <h1 className='mt-4 max-w-3xl text-2xl leading-snug font-bold tracking-tight break-words sm:text-4xl'>
+              <h1 className='mt-4 max-w-3xl text-2xl leading-snug font-bold tracking-tight wrap-break-word sm:text-4xl'>
                 {review.title}
               </h1>
-              <p className='mt-3 text-sm break-words text-stone-500'>
+              <p className='mt-3 text-sm wrap-break-word text-stone-500'>
                 <span className='mr-2 text-stone-400'>상품명</span>
                 {review.product}
               </p>
@@ -32,7 +33,10 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
                 <div className='mr-auto inline-flex items-center gap-2 text-xs text-stone-600'>
                   <Image
                     key={review.author.profileImage}
-                    src={getReviewImageUrl(review.author.profileImage) || '/default-profile.svg'}
+                    src={
+                      getReviewImageUrl(review.author.profileImage) ||
+                      '/default-profile.svg'
+                    }
                     alt=''
                     width={24}
                     height={24}
@@ -43,7 +47,13 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
                     }}
                     className='size-6 shrink-0 rounded-full object-cover'
                   />
-                  {review.author.nickname}
+                  <Link
+                    href={`/reviews?searchType=author&query=${encodeURIComponent(review.author.nickname)}&page=1`}
+                    aria-label={`${review.author.nickname} 작성자의 리뷰 보기`}
+                    className='rounded-sm break-all hover:text-[#23745b] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700'
+                  >
+                    {review.author.nickname}
+                  </Link>
 
                   <span aria-hidden='true' className='h-3 w-px bg-stone-200' />
 
@@ -96,7 +106,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
             </p>
             <h2 className='mt-2 text-lg font-semibold'>대표 이미지</h2>
             <div className='mt-5'>
-              <div className='relative aspect-[16/9] w-full min-w-0 overflow-hidden rounded-xl border border-dashed border-[#bdccba] bg-[#f3f6ef]'>
+              <div className='relative aspect-video w-full min-w-0 overflow-hidden rounded-xl border border-dashed border-[#bdccba] bg-[#f3f6ef]'>
                 <Image
                   src={
                     getReviewImageUrl(review.mainImageKey) ||
@@ -162,7 +172,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
                       points.map((item, index) => (
                         <li
                           key={index}
-                          className={`rounded-xl border bg-white/40 px-3.5 py-3 whitespace-pre-wrap break-words ${itemStyle}`}
+                          className={`rounded-xl border bg-white/40 px-3.5 py-3 whitespace-pre-wrap wrap-break-word ${itemStyle}`}
                         >
                           - {item}
                         </li>
@@ -202,18 +212,24 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
             <dl className='mt-5 space-y-4 text-xs'>
               <div className='flex justify-between gap-4'>
                 <dt className='shrink-0 text-stone-400'>상품명</dt>
-                <dd className='min-w-0 break-words'>{review.product}</dd>
+                <dd className='min-w-0 wrap-break-word'>{review.product}</dd>
               </div>
               <div className='flex justify-between gap-4'>
                 <dt className='shrink-0 text-stone-400'>사용 기간</dt>
-                <dd className='whitespace-pre-wrap break-words'>
+                <dd className='whitespace-pre-wrap wrap-break-word'>
                   {review.duration?.trim() || '등록된 사용 기간이 없습니다.'}
                 </dd>
               </div>
               <div className='flex justify-between gap-4'>
                 <dt className='shrink-0 text-stone-400'>카테고리</dt>
                 <dd>
-                  <CategoryLabel category={review.category.category} />
+                  <Link
+                    href={`/reviews?categoryId=${review.category.id}&page=1`}
+                    aria-label={`${review.category.category} 카테고리 리뷰 보기`}
+                    className='rounded-sm hover:text-[#23745b] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700'
+                  >
+                    <CategoryLabel category={review.category.category} />
+                  </Link>
                 </dd>
               </div>
               <div className='flex justify-between gap-4'>
@@ -223,7 +239,11 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
                 </dd>
               </div>
             </dl>
-            <ReviewHelpful reviewId={id} isLike={review.isLike} countLike={review.likeCount} />
+            <ReviewHelpful
+              reviewId={id}
+              isLike={review.isLike}
+              countLike={review.likeCount}
+            />
           </section>
           <nav
             aria-label='리뷰 바로가기'

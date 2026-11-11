@@ -77,7 +77,7 @@ export const useReviewSearchParams = () => {
   const router = useRouter();
   const params: ReviewSearchParams = {
     ...parseReviewSearchParams(search),
-    size: 10,
+    size: 30,
     sort: 'latest',
   };
 

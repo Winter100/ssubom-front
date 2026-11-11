@@ -43,7 +43,6 @@ export const useReviewWriter = ({
 }: ReviewWriterOptions = {}) => {
   const router = useRouter();
   const [fields, setFields] = useState<ReviewFields>(initialReview ?? emptyFields);
-  const [preview, setPreview] = useState<ReviewData | null>(null);
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [readingImage, setReadingImage] = useState<boolean>(false);
@@ -218,7 +217,6 @@ export const useReviewWriter = ({
             notifyError('리뷰는 등록되었지만 임시 저장본을 삭제하지 못했습니다.');
           }
           setFields(emptyFields);
-          setPreview(null);
           setMessage('');
           setError('');
           imageFiles.current.forEach((_, source) => URL.revokeObjectURL(source));
@@ -236,14 +234,8 @@ export const useReviewWriter = ({
     );
   };
 
-  const togglePreview = () => {
-    if (editor)
-      setPreview(preview ? null : { ...fields, body: editor.getJSON() });
-  };
-
   return {
     fields,
-    preview,
     message,
     error,
     readingImage,
@@ -254,6 +246,5 @@ export const useReviewWriter = ({
     handleImage,
     saveDraft,
     submitReview,
-    togglePreview,
   };
 };

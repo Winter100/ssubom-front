@@ -150,14 +150,6 @@ const ReviewWriterForm = ({
                 임시 저장
               </button>
             )}
-            {/* <button
-              type='button'
-              disabled={!editor || busy}
-              // onClick={togglePreview}
-              className='cursor-pointer rounded-full bg-[#23745b] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#185b46] disabled:opacity-40'
-            >
-              {preview ? '← 이어서 작성' : '미리보기 ↗'}
-            </button> */}
             <button
               type='button'
               onClick={handleSubmit}

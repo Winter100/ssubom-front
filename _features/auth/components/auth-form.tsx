@@ -12,6 +12,7 @@ import {
 } from '../../../_lib/auth-validation';
 import { project } from '../../../_constant/web';
 import { useLogin, useSignup } from '../hooks/use-auth';
+import { getLoginReturnTo } from '../lib/login-redirect';
 
 const fieldDefinitions: {
   name: AuthField;
@@ -20,6 +21,7 @@ const fieldDefinitions: {
   autoComplete: string;
 }[] = [
   { name: 'email', label: '이메일', type: 'email', autoComplete: 'email' },
+  { name: 'nickname', label: '닉네임', type: 'text', autoComplete: 'nickname' },
   {
     name: 'password',
     label: '비밀번호',
@@ -32,15 +34,23 @@ const fieldDefinitions: {
     type: 'password',
     autoComplete: 'new-password',
   },
-  { name: 'nickname', label: '닉네임', type: 'text', autoComplete: 'nickname' },
 ];
+
+const initialAuthFields: AuthFields = {
+  email: '',
+  password: '',
+  passwordConfirm: '',
+  nickname: '',
+};
 
 const AuthForm = ({
   mode,
   registered = false,
+  returnTo,
 }: {
   mode: 'login' | 'signup';
   registered?: boolean;
+  returnTo?: string;
 }) => {
   const signupMode = mode === 'signup';
   const title = signupMode ? '회원가입' : '로그인';
@@ -48,16 +58,19 @@ const AuthForm = ({
   const login = useLogin();
   const signup = useSignup();
   const submitting = useRef(false);
-  const [values, setValues] = useState<AuthFields>({
-    email: '',
-    password: '',
-    passwordConfirm: '',
-    nickname: '',
-  });
+  const [values, setValues] = useState<AuthFields>(initialAuthFields);
   const [errors, setErrors] = useState<AuthErrors>({});
   const [serverError, setServerError] = useState('');
   const pending = login.isPending || signup.isPending;
-  const fields = signupMode ? fieldDefinitions : fieldDefinitions.slice(0, 2);
+  const fields = signupMode
+    ? fieldDefinitions
+    : fieldDefinitions.filter(({ name }) => name === 'email' || name === 'password');
+
+  const resetForm = (): void => {
+    setValues(initialAuthFields);
+    setErrors({});
+    setServerError('');
+  };
 
   const change = (field: AuthField, value: string): void => {
     const next = { ...values, [field]: value };
@@ -98,10 +111,12 @@ const AuthForm = ({
           ...input,
           nickname: values.nickname.trim(),
         });
+        resetForm();
         router.replace('/login?registered=1');
       } else {
         await login.mutateAsync(input);
-        router.replace('/');
+        resetForm();
+        router.replace(getLoginReturnTo(returnTo));
       }
     } catch (cause: unknown) {
       setServerError(
@@ -121,15 +136,15 @@ const AuthForm = ({
     <main className='flex flex-1 items-center justify-center px-5 py-12 sm:py-20'>
       <section
         aria-labelledby='auth-title'
-        className='w-full max-w-md rounded-3xl border border-stone-200 bg-white p-6 shadow-sm sm:p-10'
+        className='w-full max-w-md rounded-3xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8'
       >
-        <p className='mb-3 text-sm font-semibold text-[#23745b]'>
+        <p className='mb-3 text-xs font-semibold text-[#23745b]'>
           {project.header_description}, {project.title}
         </p>
-        <h1 id='auth-title' className='text-3xl font-bold tracking-tight'>
+        <h1 id='auth-title' className='text-2xl font-bold tracking-tight'>
           {title}
         </h1>
-        <p className='mb-8 mt-3 text-sm leading-6 text-stone-500'>
+        <p className='mb-6 mt-2 text-xs leading-5 text-stone-500'>
           {signupMode
             ? '나만의 경험을 기록하고 함께 나눠 보세요.'
             : '다시 만나 반갑습니다. 이야기를 이어가 주세요.'}
@@ -137,7 +152,7 @@ const AuthForm = ({
         {registered && (
           <p
             role='status'
-            className='mb-5 rounded-xl bg-emerald-50 p-4 text-sm text-[#23745b]'
+            className='mb-4 rounded-xl bg-emerald-50 p-3 text-xs text-[#23745b]'
           >
             회원가입이 완료되었습니다. 로그인해 주세요.
           </p>
@@ -146,21 +161,21 @@ const AuthForm = ({
           {serverError && (
             <p
               role='alert'
-              className='mb-5 rounded-xl bg-red-50 p-4 text-sm text-red-700'
+              className='mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-700'
             >
               {serverError}
             </p>
           )}
           <fieldset
             disabled={pending}
-            className='space-y-5 disabled:opacity-70'
+            className='space-y-4 disabled:opacity-70'
           >
             <legend className='sr-only'>{title} 정보</legend>
             {fields.map(({ name, label, type, autoComplete }) => (
               <div key={name}>
                 <label
                   htmlFor={name}
-                  className='mb-2 block text-sm font-medium'
+                  className='mb-1.5 block text-xs font-medium'
                 >
                   {label}
                 </label>
@@ -189,17 +204,17 @@ const AuthForm = ({
                         ? 'password-hint'
                         : undefined
                   }
-                  className='w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base outline-none focus:border-[#23745b] focus:ring-2 focus:ring-emerald-100 aria-invalid:border-red-500'
+                  className='w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#23745b] focus:ring-2 focus:ring-emerald-100 aria-invalid:border-red-500'
                 />
                 {name === 'password' && mode === 'signup' && !errors[name] && (
-                  <p id='password-hint' className='mt-2 text-xs text-stone-500'>
+                  <p id='password-hint' className='mt-1.5 text-[11px] text-stone-500'>
                     8자 이상 입력해 주세요.
                   </p>
                 )}
                 {errors[name] && (
                   <p
                     id={`${name}-error`}
-                    className='mt-2 text-sm text-red-700'
+                    className='mt-1.5 text-xs text-red-700'
                     aria-live='polite'
                   >
                     {errors[name]}
@@ -209,16 +224,17 @@ const AuthForm = ({
             ))}
             <button
               type='submit'
-              className='w-full rounded-xl bg-[#23745b] px-4 py-3 font-semibold text-white hover:bg-[#185b46] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#23745b]'
+              className='w-full cursor-pointer rounded-xl bg-[#23745b] px-3 py-2.5 text-sm font-semibold text-white hover:bg-[#185b46] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#23745b] disabled:cursor-wait'
             >
               {pending ? `${title} 중…` : title}
             </button>
           </fieldset>
         </form>
-        <p className='mt-7 text-center text-sm text-stone-500'>
+        <p className='mt-6 text-center text-xs text-stone-500'>
           {signupMode ? '이미 계정이 있으신가요? ' : '아직 계정이 없으신가요? '}
           <Link
             href={signupMode ? '/login' : '/signup'}
+            onNavigate={resetForm}
             className='font-semibold text-[#23745b] underline underline-offset-4'
           >
             {signupMode ? '로그인' : '회원가입'}

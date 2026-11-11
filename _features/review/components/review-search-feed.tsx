@@ -2,12 +2,12 @@
 
 import { useEffect, useRef } from 'react';
 import { useReviewSearchParams } from '../hooks/use-review-search-params';
-import ReviewCard from './review-card';
+import ReviewImageCard from './review-image-card';
 import CategoryLabel from './category-label';
 import ReviewEmptyState from './review-empty-state';
 import ReviewPagination from './list/review-pagination';
 import ReviewsQueryBoundary from './reviews-query-boundary';
-import ReviewListSkeleton from './list/review-list-skeleton';
+import ReviewGridSkeleton from './list/review-grid-skeleton';
 import { ReviewSearchParams } from '../../../_types/review';
 import { useCategories, useReviews } from '../hooks/use-review';
 
@@ -24,7 +24,6 @@ const ReviewSearchFeed = () => {
   const searchForm = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    // 브라우저의 방문 기록 입력값 복원이 끝난 뒤 URL의 기본값을 적용합니다.
     const restoreSearch = () => {
       window.setTimeout(() => searchForm.current?.reset(), 0);
     };
@@ -147,7 +146,7 @@ const ReviewSearchFeed = () => {
         </div>
       </div>
       <ReviewsQueryBoundary
-        skeletonCount={size}
+        fallback={<ReviewGridSkeleton count={size} />}
         resetKeys={[page, size, categoryId, query, searchType, sort]}
       >
         <ReviewSearchResults
@@ -178,7 +177,7 @@ const ReviewSearchResults = ({
     if (needsCorrection) onPageCorrection(lastPage);
   }, [needsCorrection, lastPage, onPageCorrection]);
 
-  if (needsCorrection) return <ReviewListSkeleton count={10} />;
+  if (needsCorrection) return <ReviewGridSkeleton count={params.size} />;
 
   return (
     <>
@@ -187,18 +186,18 @@ const ReviewSearchResults = ({
           검색 결과 {data.totalElements}개,{' '}
           {data.totalPages === 0 ? 0 : params.page} / {data.totalPages} 페이지
         </p>
-        <div className='divide-y divide-stone-200/70'>
+        <div className='grid grid-cols-1 gap-5 py-7 sm:grid-cols-2 lg:grid-cols-3'>
           {data.content.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <ReviewImageCard key={review.id} review={review} />
           ))}
-          {data.content.length === 0 && (
-            <ReviewEmptyState
-              variant='search'
-              hasFilters={hasFilters}
-              onReset={onReset}
-            />
-          )}
         </div>
+        {data.content.length === 0 && (
+          <ReviewEmptyState
+            variant='search'
+            hasFilters={hasFilters}
+            onReset={onReset}
+          />
+        )}
       </div>
       {data.totalPages > 0 && (
         <ReviewPagination

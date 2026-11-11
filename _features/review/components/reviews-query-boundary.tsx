@@ -1,10 +1,10 @@
 'use client';
 
-import { Suspense, type ReactNode } from 'react';
+import { Suspense, useEffect, type ReactNode } from 'react';
 import { QueryErrorResetBoundary } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
 import ReviewListSkeleton from './list/review-list-skeleton';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { ApiError } from '@/_lib/api/api';
 
 type ReviewsQueryBoundaryProps = {
@@ -13,6 +13,17 @@ type ReviewsQueryBoundaryProps = {
   fallback?: ReactNode;
   resetKeys?: unknown[];
   notFoundOn404?: boolean;
+  forbiddenRedirectTo?: string;
+};
+
+const ForbiddenRedirect = ({ href }: { href: string }) => {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace(href);
+  }, [router, href]);
+
+  return <p role='status' className='py-20 text-center'>마이페이지로 이동하고 있습니다…</p>;
 };
 
 const ReviewsQueryBoundary = ({
@@ -21,6 +32,7 @@ const ReviewsQueryBoundary = ({
   fallback,
   resetKeys,
   notFoundOn404 = false,
+  forbiddenRedirectTo,
 }: ReviewsQueryBoundaryProps) => (
   <QueryErrorResetBoundary>
     {({ reset }) => (
@@ -28,6 +40,13 @@ const ReviewsQueryBoundary = ({
         onReset={reset}
         resetKeys={resetKeys}
         fallbackRender={({ error, resetErrorBoundary }) => {
+          if (
+            forbiddenRedirectTo &&
+            error instanceof ApiError &&
+            error.status === 403
+          ) {
+            return <ForbiddenRedirect href={forbiddenRedirectTo} />;
+          }
           if (
             notFoundOn404 &&
             error instanceof ApiError &&

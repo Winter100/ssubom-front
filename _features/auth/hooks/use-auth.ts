@@ -6,7 +6,7 @@ import type {
   User,
 } from '@/_types/auth';
 import { authKeys } from '../constant/auth.keys';
-import { api, ApiError, refreshAccessToken } from '@/_lib/api/api';
+import { api, ApiError } from '@/_lib/api/api';
 import { getAccessToken, setAccessToken } from '../stores/tokenStore';
 import { clearSession } from '../lib/session';
 import { apiPath } from '@/_constant/api-path';
@@ -99,13 +99,5 @@ export const useMe = () => {
       }
     },
     retry: false,
-  });
-};
-
-export const useRefreshToken = () => {
-  return useMutation({
-    mutationFn: refreshAccessToken,
-    retry: false,
-    gcTime: 0,
   });
 };

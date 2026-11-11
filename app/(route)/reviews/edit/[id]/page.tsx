@@ -8,6 +8,7 @@ type EditParams = { params: Promise<{ id: string }> };
 const Page = ({ params }: EditParams) => (
   <ReviewsQueryBoundary
     notFoundOn404
+    forbiddenRedirectTo='/mypage'
     fallback={
       <p role='status' className='py-20 text-center'>
         수정할 리뷰를 불러오는 중입니다…

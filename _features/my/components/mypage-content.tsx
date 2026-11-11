@@ -8,20 +8,23 @@ import ReviewsQueryBoundary from '@/_features/review/components/reviews-query-bo
 import MyReviewsFeed from './my-reviews-feed';
 import MyReviewCounts from './my-review-counts';
 import ProfileImageForm from './profile-image-form';
-import Link from 'next/link';
+import LoginLink from '@/_features/auth/components/login-link';
+import { getLoginHref } from '@/_features/auth/lib/login-redirect';
 import ReviewGridSkeleton from '@/_features/review/components/list/review-grid-skeleton';
 
 const MyPageContent = () => {
   const { data: user, error, isPending, isFetching } = useMe();
   const router = useRouter();
-  const [filters, setFilters] = useState<{ page: number; categoryId?: number }>({
-    page: 1,
-  });
+  const [filters, setFilters] = useState<{ page: number; categoryId?: number }>(
+    {
+      page: 1,
+    },
+  );
   const resetReviewFilter = (): void => setFilters({ page: 1 });
 
   useEffect(() => {
     if (!isPending && !error && user === null)
-      router.replace('/login');
+      router.replace(getLoginHref('/mypage'));
   }, [isPending, error, user, router]);
 
   const message = error
@@ -37,9 +40,9 @@ const MyPageContent = () => {
         {message ? (
           <div role='alert' className='text-sm leading-6 text-red-700'>
             <p>{message}</p>
-            <Link href='/login' className='mt-3 inline-block underline underline-offset-4'>
+            <LoginLink className='mt-3 inline-block underline underline-offset-4'>
               로그인 페이지로 이동
-            </Link>
+            </LoginLink>
           </div>
         ) : (
           <p role='status' className='text-sm text-stone-500'>
@@ -87,7 +90,7 @@ const MyPageContent = () => {
                   profileImage={user.profileImage}
                 />
                 <dl className='mt-2 divide-y divide-stone-100 rounded-xl border border-stone-200/80 px-3'>
-                  <div className='grid grid-cols-[3.5rem_minmax(0,1fr)] items-baseline gap-3 py-2.5'>
+                  <div className='grid grid-cols-[5rem_minmax(0,1fr)] items-baseline gap-3 py-2.5'>
                     <dt className='text-xs font-medium text-stone-500'>
                       이메일
                     </dt>
@@ -95,12 +98,24 @@ const MyPageContent = () => {
                       {user.email}
                     </dd>
                   </div>
-                  <div className='grid grid-cols-[3.5rem_minmax(0,1fr)] items-baseline gap-3 py-2.5'>
+                  <div className='grid grid-cols-[5rem_minmax(0,1fr)] items-baseline gap-3 py-2.5'>
                     <dt className='text-xs font-medium text-stone-500'>
                       가입일
                     </dt>
                     <dd className='min-w-0 break-all text-xs leading-5 text-stone-700'>
                       {new Date(user.createdAt).toLocaleString('ko-KR')}
+                    </dd>
+                  </div>
+                  <div className='grid grid-cols-[5rem_minmax(0,1fr)] items-baseline gap-3 py-2.5'>
+                    <dt className='text-xs font-medium text-stone-500'>
+                      닉네임
+                    </dt>
+                    <dd className='min-w-0 break-all text-xs leading-5 text-stone-700'>
+                      {user.nicknameChangedAt
+                        ? new Date(user.nicknameChangedAt).toLocaleString(
+                            'ko-KR',
+                          )
+                        : '즉시 변경 가능'}
                     </dd>
                   </div>
                 </dl>
@@ -115,7 +130,9 @@ const MyPageContent = () => {
               </div>
               <MyReviewCounts
                 categoryId={filters.categoryId}
-                onCategoryChange={(categoryId) => setFilters({ page: 1, categoryId })}
+                onCategoryChange={(categoryId) =>
+                  setFilters({ page: 1, categoryId })
+                }
                 onReset={resetReviewFilter}
               />
             </div>
@@ -127,7 +144,9 @@ const MyPageContent = () => {
           <MyReviewsFeed
             page={filters.page}
             categoryId={filters.categoryId}
-            onPageChange={(page) => setFilters((previous) => ({ ...previous, page }))}
+            onPageChange={(page) =>
+              setFilters((previous) => ({ ...previous, page }))
+            }
             onReset={resetReviewFilter}
           />
         </ReviewsQueryBoundary>

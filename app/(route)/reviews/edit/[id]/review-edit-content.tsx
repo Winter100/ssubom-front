@@ -21,8 +21,8 @@ const ReviewEditContent = ({ id }: { id: string }) => {
   const [{ initialReview, existingImages }] = useState(() => {
     const bodySources = getImageSources(review.content);
     const keys = new Set(
-      [review.mainImageKey, ...bodySources].filter(
-        (key): key is string => Boolean(key),
+      [review.mainImageKey, ...bodySources].filter((key): key is string =>
+        Boolean(key),
       ),
     );
     const existingImages = new Map<string, string>();

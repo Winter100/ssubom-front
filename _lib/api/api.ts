@@ -77,6 +77,11 @@ export const onAuthExpired = (handler: () => void): (() => void) => {
 
 const expireSession = (): void => {
   setAccessToken(null);
+  try {
+    localStorage.removeItem('hasSession');
+  } catch {
+    // 저장소에 접근할 수 없어도 메모리와 화면의 인증 상태는 정리합니다.
+  }
   authExpiredHandler?.();
 };
 
@@ -109,6 +114,16 @@ export const refreshAccessToken = (): Promise<string> => {
     } catch (error: unknown) {
       if (getTokenRevision() === previousRevision) {
         expireSession();
+        try {
+          // 재발급 인터셉터를 거치지 않고 서버의 리프레시 쿠키도 정리합니다.
+          await axios.post(apiPath.logout, undefined, {
+            baseURL: api.defaults.baseURL,
+            timeout: api.defaults.timeout,
+            withCredentials: true,
+          });
+        } catch {
+          // 서버 로그아웃 실패와 관계없이 로컬 세션은 만료된 상태로 유지합니다.
+        }
       }
       throw error;
     } finally {

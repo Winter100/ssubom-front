@@ -2,6 +2,11 @@
 
 import { getCategoryIcon } from '../../lib/category-icon';
 import type { ReviewFields } from '../../lib/review-types';
+import {
+  MAX_TITLE_LENGTH,
+  MAX_PRODUCT_LENGTH,
+  MAX_DURATION_LENGTH,
+} from '../../lib/review-limits';
 import { isValidReviewRating } from '../../lib/review-validation';
 import type { ChangeReviewField } from '../../hooks/use-review-writer';
 import type { CategoryType } from '@/_types/review';
@@ -29,6 +34,15 @@ const ReviewBasicsFields = ({
     (category) => category.id === fields.category?.id,
   );
   const ratingInvalid = showErrors && !isValidReviewRating(fields.rating);
+  const titleInvalid =
+    showErrors &&
+    (!fields.title.trim() || fields.title.length > MAX_TITLE_LENGTH);
+  const productInvalid =
+    showErrors &&
+    (!fields.product.trim() || fields.product.length > MAX_PRODUCT_LENGTH);
+  const durationInvalid =
+    showErrors &&
+    (!fields.duration.trim() || fields.duration.length > MAX_DURATION_LENGTH);
   const adjustRating = (delta: number) => {
     const rating = Math.round((fields.rating + delta) * 10) / 10;
     changeField('rating', Math.min(5, Math.max(0, rating)));
@@ -48,29 +62,37 @@ const ReviewBasicsFields = ({
             <span aria-hidden='true' className='text-red-600'>
               *
             </span>
-            {showErrors && !fields.title.trim() && (
+            {titleInvalid && (
               <span
                 id='review-title-error'
                 role='alert'
                 className='ml-2 inline-block font-semibold text-red-600'
               >
-                리뷰 제목을 입력해 주세요.
+                {fields.title.length > MAX_TITLE_LENGTH
+                  ? `최대 ${MAX_TITLE_LENGTH}자까지 입력할 수 있습니다.`
+                  : '리뷰 제목을 입력해 주세요.'}
               </span>
             )}
             <input
               required
-              aria-invalid={showErrors && !fields.title.trim()}
+              aria-invalid={titleInvalid}
               aria-describedby={
-                showErrors && !fields.title.trim()
-                  ? 'review-title-error'
-                  : undefined
+                titleInvalid
+                  ? 'review-title-count review-title-error'
+                  : 'review-title-count'
               }
               value={fields.title}
-              maxLength={100}
+              maxLength={MAX_TITLE_LENGTH}
               onChange={(event) => changeField('title', event.target.value)}
               placeholder='경험이 느껴지는 제목을 적어주세요'
               className={inputClass}
             />
+            <span
+              id='review-title-count'
+              className='mt-1 block text-right text-xs font-normal text-stone-500'
+            >
+              {fields.title.length}/{MAX_TITLE_LENGTH}
+            </span>
           </label>
         </div>
 
@@ -80,29 +102,37 @@ const ReviewBasicsFields = ({
             <span aria-hidden='true' className='text-red-600'>
               *
             </span>
-            {showErrors && !fields.product.trim() && (
+            {productInvalid && (
               <span
                 id='review-product-error'
                 role='alert'
                 className='ml-2 inline-block font-semibold text-red-600'
               >
-                상품명을 입력해 주세요.
+                {fields.product.length > MAX_PRODUCT_LENGTH
+                  ? `최대 ${MAX_PRODUCT_LENGTH}자까지 입력할 수 있습니다.`
+                  : '상품명을 입력해 주세요.'}
               </span>
             )}
             <input
               required
-              aria-invalid={showErrors && !fields.product.trim()}
+              aria-invalid={productInvalid}
               aria-describedby={
-                showErrors && !fields.product.trim()
-                  ? 'review-product-error'
-                  : undefined
+                productInvalid
+                  ? 'review-product-count review-product-error'
+                  : 'review-product-count'
               }
               value={fields.product}
-              maxLength={80}
+              maxLength={MAX_PRODUCT_LENGTH}
               onChange={(event) => changeField('product', event.target.value)}
               placeholder='브랜드와 상품명을 알려주세요'
               className={inputClass}
             />
+            <span
+              id='review-product-count'
+              className='mt-1 block text-right text-xs font-normal text-stone-500'
+            >
+              {fields.product.length}/{MAX_PRODUCT_LENGTH}
+            </span>
           </label>
         </div>
         <div className='mt-5 grid gap-5 sm:grid-cols-2'>
@@ -152,29 +182,37 @@ const ReviewBasicsFields = ({
             <span aria-hidden='true' className='text-red-600'>
               *
             </span>
-            {showErrors && !fields.duration.trim() && (
+            {durationInvalid && (
               <span
                 id='review-duration-error'
                 role='alert'
                 className='ml-2 inline-block font-semibold text-red-600'
               >
-                사용 기간 또는 구매 횟수를 입력해 주세요.
+                {fields.duration.length > MAX_DURATION_LENGTH
+                  ? `최대 ${MAX_DURATION_LENGTH}자까지 입력할 수 있습니다.`
+                  : '사용 기간 또는 구매 횟수를 입력해 주세요.'}
               </span>
             )}
             <input
               required
-              aria-invalid={showErrors && !fields.duration.trim()}
+              aria-invalid={durationInvalid}
               aria-describedby={
-                showErrors && !fields.duration.trim()
-                  ? 'review-duration-error'
-                  : undefined
+                durationInvalid
+                  ? 'review-duration-count review-duration-error'
+                  : 'review-duration-count'
               }
               value={fields.duration}
-              maxLength={30}
+              maxLength={MAX_DURATION_LENGTH}
               onChange={(event) => changeField('duration', event.target.value)}
               placeholder='예: 3개월 사용 또는 3회 구매'
               className={inputClass}
             />
+            <span
+              id='review-duration-count'
+              className='mt-1 block text-right text-xs font-normal text-stone-500'
+            >
+              {fields.duration.length}/{MAX_DURATION_LENGTH}
+            </span>
           </label>
         </div>
 

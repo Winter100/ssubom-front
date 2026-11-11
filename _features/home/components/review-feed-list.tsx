@@ -4,7 +4,7 @@ import ReviewCard from '@/_features/review/components/review-card';
 import { useReviews } from '@/_features/review/hooks/use-review';
 
 const ReviewFeedList = () => {
-  const { data } = useReviews({ page: 1, size: 10, sort: 'latest' });
+  const { data } = useReviews({ page: 1, size: 5, sort: 'latest' });
 
   if (data.content.length === 0) {
     return (
