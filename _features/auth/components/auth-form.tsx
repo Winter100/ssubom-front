@@ -64,7 +64,9 @@ const AuthForm = ({
   const pending = login.isPending || signup.isPending;
   const fields = signupMode
     ? fieldDefinitions
-    : fieldDefinitions.filter(({ name }) => name === 'email' || name === 'password');
+    : fieldDefinitions.filter(
+        ({ name }) => name === 'email' || name === 'password',
+      );
 
   const resetForm = (): void => {
     setValues(initialAuthFields);
@@ -158,14 +160,6 @@ const AuthForm = ({
           </p>
         )}
         <form noValidate onSubmit={submit} aria-busy={pending}>
-          {serverError && (
-            <p
-              role='alert'
-              className='mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-700'
-            >
-              {serverError}
-            </p>
-          )}
           <fieldset
             disabled={pending}
             className='space-y-4 disabled:opacity-70'
@@ -207,7 +201,10 @@ const AuthForm = ({
                   className='w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#23745b] focus:ring-2 focus:ring-emerald-100 aria-invalid:border-red-500'
                 />
                 {name === 'password' && mode === 'signup' && !errors[name] && (
-                  <p id='password-hint' className='mt-1.5 text-[11px] text-stone-500'>
+                  <p
+                    id='password-hint'
+                    className='mt-1.5 text-[11px] text-stone-500'
+                  >
                     8자 이상 입력해 주세요.
                   </p>
                 )}
@@ -222,6 +219,15 @@ const AuthForm = ({
                 )}
               </div>
             ))}
+            {serverError && (
+              <p
+                role='alert'
+                className='mb-4 rounded-xl text-center p-3 text-xs text-red-700'
+              >
+                {serverError}
+              </p>
+            )}
+
             <button
               type='submit'
               className='w-full cursor-pointer rounded-xl bg-[#23745b] px-3 py-2.5 text-sm font-semibold text-white hover:bg-[#185b46] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#23745b] disabled:cursor-wait'

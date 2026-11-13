@@ -16,8 +16,8 @@ const ReviewWriter = ({
   const isEditing = initialReview !== undefined;
   const {
     fields,
-    message,
-    error,
+    // message,
+    // error,
     readingImage,
     isSubmitting,
     resetVersion,
@@ -39,9 +39,7 @@ const ReviewWriter = ({
             WRITE YOUR EXPERIENCE
           </p>
           <h1 className='mt-3 text-3xl font-bold tracking-tight'>
-            {isEditing
-              ? '리뷰를 수정해 주세요.'
-              : '써본 이야기를 들려주세요.'}
+            {isEditing ? '리뷰를 수정해 주세요.' : '써본 이야기를 들려주세요.'}
           </h1>
           <p className='mt-3 text-xs leading-6 text-stone-500'>
             작은 경험 하나가 누군가의 선택에 도움이 될 수 있어요.
@@ -51,21 +49,6 @@ const ReviewWriter = ({
               : '작성한 내용을 확인한 뒤 등록해 주세요.'}
           </p>
         </div>
-        {error && (
-          <p
-            role='alert'
-            className='mb-5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-xs leading-6 text-red-700'
-          >
-            {error}
-          </p>
-        )}
-        <p role='status' className='mb-4 text-xs text-[#23745b]'>
-          {isSubmitting
-            ? '리뷰를 전송하는 중입니다…'
-            : readingImage
-              ? '이미지를 불러오는 중입니다…'
-              : message}
-        </p>
         <ReviewWriterForm
           key={resetVersion}
           fields={fields}

@@ -79,9 +79,19 @@ const MyPageContent = () => {
           {user && (
             <div className='grid min-w-0 items-start gap-5 lg:grid-cols-2'>
               <div className='min-w-0'>
-                <h2 className='text-sm font-semibold text-stone-800'>
-                  계정 정보
-                </h2>
+                <div className='flex items-center justify-between'>
+                  <h2 className='text-sm font-semibold text-stone-800'>
+                    계정 정보
+                  </h2>
+                  {/* <div className='flex justify-end'>
+                    <button
+                      type='button'
+                      className='cursor-pointer rounded-lg py-1 px-3 text-[11px] text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600'
+                    >
+                      회원 탈퇴
+                    </button>
+                  </div> */}
+                </div>
                 <ProfileImageForm
                   key={user.id}
                   memberId={user.id}

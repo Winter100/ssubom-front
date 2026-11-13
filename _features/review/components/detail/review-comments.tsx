@@ -173,7 +173,7 @@ const CommentsContent = ({
           id='comment-delete-description'
           className='mt-3 text-sm leading-7 text-stone-500'
         >
-          삭제 후에는 내용을 복구할 수 없으며, 댓글 자리와 답글은 유지됩니다.
+          삭제 후에는 복구할 수 없으며, 댓글 자리는 유지됩니다.
         </p>
         {deleteError && (
           <p role='alert' className='mt-3 text-xs text-red-700'>
@@ -187,7 +187,7 @@ const CommentsContent = ({
             onClick={() => {
               if (!actionLock.current) dialog.current?.close();
             }}
-            className='rounded-xl border border-stone-200 px-4 py-2 text-xs disabled:opacity-50'
+            className='rounded-xl cursor-pointer border border-stone-200 px-4 py-2 text-xs disabled:opacity-50'
           >
             취소
           </button>
@@ -195,7 +195,7 @@ const CommentsContent = ({
             type='button'
             disabled={action.isPending}
             onClick={() => void confirmDelete()}
-            className='rounded-xl bg-[#23745b] px-4 py-2 text-xs text-white disabled:opacity-50'
+            className='rounded-xl cursor-pointer bg-[#23745b] px-4 py-2 text-xs text-white disabled:opacity-50'
           >
             {action.isPending ? '삭제 중…' : '삭제'}
           </button>

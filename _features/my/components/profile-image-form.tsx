@@ -38,7 +38,7 @@ const ProfileImageForm = ({
   const preview = selection?.url;
   const nextNickname = nicknameLocked
     ? nickname
-    : (draftNickname ?? nickname).trim();
+    : (draftNickname ?? nickname).replace(/\s/g, '');
   const hasChanges = nextNickname !== nickname || file !== undefined;
 
   const cancelSelection = (): void => {
