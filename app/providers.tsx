@@ -11,7 +11,7 @@ import { AuthSession } from '../_features/auth/components/auth-session';
 const createQueryClient = (): QueryClient =>
   new QueryClient({
     defaultOptions: {
-      queries: { staleTime: 60 * 1000 },
+      // queries: { staleTime: 60 * 1000 },
     },
   });
 
