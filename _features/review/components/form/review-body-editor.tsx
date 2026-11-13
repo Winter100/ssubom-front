@@ -37,8 +37,8 @@ const ReviewBodyEditor = ({
       </p>
       <h2 className='mt-2 text-lg font-semibold'>진짜 써본 이야기</h2>
       <p className='mt-2 text-xs leading-6 text-stone-400'>
-        문단 스타일에서 제목 크기를 선택하고, 글을 선택해 굵게 표시하거나
-        이미지를 넣어보세요.
+        문단 스타일에서 제목 크기를 선택하고, 글을 선택해 굵게·밑줄·취소선으로
+        꾸며보세요. 목록, 인용문, 구분선과 이미지도 넣을 수 있습니다.
       </p>
 
       <div className='mt-5 overflow-hidden rounded-2xl border border-stone-200 bg-white'>

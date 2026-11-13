@@ -2,6 +2,14 @@
 
 import { useEditorState, type Editor } from '@tiptap/react';
 
+type ToolbarTool = {
+  label: string;
+  text: string;
+  active?: boolean;
+  className?: string;
+  action: () => boolean;
+};
+
 const EditorToolbar = ({
   editor,
   onImage,
@@ -21,6 +29,8 @@ const EditorToolbar = ({
           : 'paragraph',
       bold: current.isActive('bold'),
       italic: current.isActive('italic'),
+      underline: current.isActive('underline'),
+      strike: current.isActive('strike'),
       bullet: current.isActive('bulletList'),
       ordered: current.isActive('orderedList'),
       quote: current.isActive('blockquote'),
@@ -28,7 +38,7 @@ const EditorToolbar = ({
       canRedo: current.can().redo(),
     }),
   });
-  const tools = [
+  const tools: ToolbarTool[] = [
     {
       label: '굵게',
       text: 'B',
@@ -40,6 +50,20 @@ const EditorToolbar = ({
       text: 'I',
       active: active.italic,
       action: () => editor.chain().focus().toggleItalic().run(),
+    },
+    {
+      label: '밑줄',
+      text: 'U',
+      className: 'underline',
+      active: active.underline,
+      action: () => editor.chain().focus().toggleUnderline().run(),
+    },
+    {
+      label: '취소선',
+      text: 'S',
+      className: 'line-through',
+      active: active.strike,
+      action: () => editor.chain().focus().toggleStrike().run(),
     },
     {
       label: '글머리 기호 목록',
@@ -58,6 +82,16 @@ const EditorToolbar = ({
       text: '“ 인용',
       active: active.quote,
       action: () => editor.chain().focus().toggleBlockquote().run(),
+    },
+    {
+      label: '구분선 삽입',
+      text: '― 구분선',
+      action: () => editor.chain().focus().setHorizontalRule().run(),
+    },
+    {
+      label: '선택 영역 서식 지우기',
+      text: '서식 지우기',
+      action: () => editor.chain().focus().unsetAllMarks().clearNodes().run(),
     },
   ];
   return (
@@ -94,10 +128,11 @@ const EditorToolbar = ({
           title={tool.label}
           aria-label={tool.label}
           aria-pressed={tool.active}
+          onMouseDown={(event) => event.preventDefault()}
           onClick={tool.action}
           className={`min-h-9 min-w-9 cursor-pointer rounded-lg px-2.5 text-xs font-semibold outline-emerald-700 transition-colors ${tool.active ? 'bg-[#dce9dc] text-[#23745b]' : 'text-stone-600 hover:bg-stone-200/60'}`}
         >
-          {tool.text}
+          <span className={tool.className}>{tool.text}</span>
         </button>
       ))}
       <button
