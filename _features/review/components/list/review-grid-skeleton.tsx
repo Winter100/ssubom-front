@@ -1,6 +1,6 @@
 const ReviewGridSkeleton = ({ count }: { count: number }) => (
   <div aria-busy='true' aria-label='리뷰 목록을 불러오는 중'>
-    <p role='status' className='sr-only'>리뷰를 불러오는 중입니다.</p>
+    <span role='status' className='sr-only'>리뷰를 불러오는 중입니다.</span>
     <div className='grid grid-cols-1 gap-5 py-7 sm:grid-cols-2 lg:grid-cols-3'>
       {Array.from({ length: count }, (_, index) => (
         <div

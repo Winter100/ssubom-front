@@ -1,8 +1,6 @@
 const ReviewListSkeleton = ({ count }: { count: number }) => (
   <div aria-busy='true' aria-label='리뷰 목록을 불러오는 중'>
-    <p role='status' className='sr-only'>
-      리뷰를 불러오는 중입니다.
-    </p>
+    <span role='status' className='sr-only'>리뷰를 불러오는 중입니다.</span>
     <div className='divide-y divide-stone-200/70'>
       {Array.from({ length: count }, (_, index) => (
         <div

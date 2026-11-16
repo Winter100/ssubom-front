@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useRef, useState } from 'react';
 import { useMe } from '@/_features/auth/hooks/use-auth';
@@ -8,6 +8,9 @@ import type { CommentAction, ReviewComment } from '@/_types/comment';
 import { useComments, useCommentAction } from '../../hooks/use-comments';
 import CommentForm from './comment-form';
 import CommentThread from './comment-thread';
+import LoadingSpinner from '@/_features/common/components/loading-spinner';
+import WithdrawalNotice from '@/_features/my/components/withdrawal-notice';
+import { useWithdrawal } from '@/_features/my/hooks/use-withdrawal';
 
 const ReviewComments = ({ reviewId }: { reviewId: string }) => {
   const { data: user, isPending } = useMe();
@@ -42,6 +45,7 @@ const CommentsContent = ({
   user: User | null;
 }) => {
   const comments = useComments(reviewId);
+  const withdrawal = useWithdrawal();
   const action = useCommentAction(reviewId);
   const actionLock = useRef(false);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -59,13 +63,13 @@ const CommentsContent = ({
     }
   };
   const openDelete = (comment: ReviewComment): void => {
-    if (actionLock.current) return;
+    if (actionLock.current || withdrawal.blocked) return;
     setDeleteTarget(comment.id);
     setDeleteError(null);
     dialog.current?.showModal();
   };
   const confirmDelete = async (): Promise<void> => {
-    if (deleteTarget === null || actionLock.current) return;
+    if (deleteTarget === null || actionLock.current || withdrawal.blocked) return;
     setDeleteError(null);
     try {
       await runAction({ type: 'delete', commentId: deleteTarget });
@@ -83,6 +87,7 @@ const CommentsContent = ({
             thread={thread}
             user={user}
             busy={action.isPending}
+            writeBlocked={withdrawal.blocked}
             onAction={runAction}
             onDelete={openDelete}
           />
@@ -94,19 +99,20 @@ const CommentsContent = ({
   return (
     <>
       {user && (
+        <WithdrawalNotice />
+      )}
+      {user && (
         <CommentForm
           user={user}
           label='댓글 등록'
-          disabled={action.isPending}
+          disabled={action.isPending || withdrawal.blocked}
           onSave={(content) =>
             runAction({ type: 'create', parentId: null, content })
           }
         />
       )}
       {comments.isPending && (
-        <p role='status' className='py-8 text-center text-sm text-stone-400'>
-          댓글을 불러오는 중입니다.
-        </p>
+        <LoadingSpinner />
       )}
       {comments.isError && (
         <div
@@ -193,7 +199,7 @@ const CommentsContent = ({
           </button>
           <button
             type='button'
-            disabled={action.isPending}
+            disabled={action.isPending || withdrawal.blocked}
             onClick={() => void confirmDelete()}
             className='rounded-xl cursor-pointer bg-[#23745b] px-4 py-2 text-xs text-white disabled:opacity-50'
           >

@@ -24,6 +24,7 @@ type ReviewWriterFormProps = {
   editor: Editor | null;
   readingImage: boolean;
   isSubmitting: boolean;
+  contentBlocked?: boolean;
   handleImage: HandleReviewImage;
   categoryList: CategoryType[];
   submitReview: () => void;
@@ -37,6 +38,7 @@ const ReviewWriterForm = ({
   editor,
   readingImage,
   isSubmitting,
+  contentBlocked = false,
   handleImage,
   submitReview,
   categoryList,
@@ -44,7 +46,7 @@ const ReviewWriterForm = ({
   submitLabel = '등록',
 }: ReviewWriterFormProps) => {
   const [submitAttempted, setSubmitAttempted] = useState<boolean>(false);
-  const busy = readingImage || isSubmitting;
+  const busy = readingImage || isSubmitting || contentBlocked;
 
   const handleSubmit = () => {
     if (busy) return;
@@ -60,7 +62,7 @@ const ReviewWriterForm = ({
 
   return (
     <fieldset
-      disabled={isSubmitting}
+      disabled={isSubmitting || contentBlocked}
       aria-busy={isSubmitting}
       className='grid min-w-0 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_260px] disabled:opacity-60'
     >

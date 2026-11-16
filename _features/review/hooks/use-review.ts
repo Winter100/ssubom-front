@@ -1,3 +1,4 @@
+import { useWithdrawal } from '@/_features/my/hooks/use-withdrawal';
 import {
   useMutation,
   useQueryClient,
@@ -107,9 +108,13 @@ export const useDetailMyReview = (reviewId: string) => {
 
 // 리뷰 생성 커스텀 훅
 export const useCreateReview = () => {
+  const withdrawal = useWithdrawal();
   const queryClient = useQueryClient();
   return useMutation<void, Error, CreateReviewInput>({
-    mutationFn: ({ review, files }) => createReview(review, files),
+    mutationFn: async ({ review, files }) => {
+      await withdrawal.assertAllowed();
+      return createReview(review, files);
+    },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: reviewKeys.paginations() }),
     onError: (error) => {
@@ -125,12 +130,14 @@ export const useCreateReview = () => {
 
 // 리뷰 도움됐어요 커스텀 훅
 const useReviewLike = (reviewId: string, isLike: boolean) => {
+  const withdrawal = useWithdrawal();
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: [...reviewKeys.all, 'like', reviewId],
     mutationFn: () =>
       isLike ? reviewApi.insertLike(reviewId) : reviewApi.deleteLike(reviewId),
     onMutate: async () => {
+      await withdrawal.assertAllowed();
       const tokenRevision = getTokenRevision();
       await queryClient.cancelQueries({ queryKey: reviewKeys.all });
       if (tokenRevision !== getTokenRevision()) return;
@@ -229,10 +236,13 @@ export const useDeleteLike = (reviewId: string) =>
   useReviewLike(reviewId, false);
 
 export const useUpdateReview = () => {
+  const withdrawal = useWithdrawal();
   const queryClient = useQueryClient();
   return useMutation<void, Error, UpdateReviewInput>({
-    mutationFn: ({ reviewId, review, files, existingImages }) =>
-      updateReview(reviewId, review, files, existingImages),
+    mutationFn: async ({ reviewId, review, files, existingImages }) => {
+      await withdrawal.assertAllowed();
+      return updateReview(reviewId, review, files, existingImages);
+    },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: reviewKeys.all }),
     retry: false,

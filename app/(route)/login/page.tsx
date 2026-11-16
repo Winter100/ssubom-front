@@ -1,5 +1,6 @@
 ﻿import AuthForm from '@/_features/auth/components/auth-form';
 import { Suspense } from 'react';
+import LoadingSpinner from '@/_features/common/components/loading-spinner';
 
 type LoginPageProps = {
   searchParams: Promise<{ registered?: string; returnTo?: string | string[] }>;
@@ -10,9 +11,7 @@ const LoginPage = ({ searchParams }: LoginPageProps) => {
     <div className='min-h-screen bg-[#fafbf9] font-sans text-[#202a26] selection:bg-emerald-100'>
       <Suspense
         fallback={
-          <main className='flex-1 p-10 text-center' role='status'>
-            로그인 화면을 준비하고 있습니다…
-          </main>
+          <LoadingSpinner />
         }
       >
         <LoginContent searchParams={searchParams} />

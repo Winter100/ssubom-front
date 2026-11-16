@@ -1,4 +1,5 @@
 export const apiPath = {
+  withdrawal: 'auth/withdrawal',
   signup: 'auth/signup',
   login: 'auth/login',
   logout: 'auth/logout',

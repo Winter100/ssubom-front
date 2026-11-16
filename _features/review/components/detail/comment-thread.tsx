@@ -20,12 +20,13 @@ type CommentItemProps = {
   user: User | null;
   isReply: boolean;
   busy: boolean;
+  writeBlocked: boolean;
   onEdit: () => void;
   onReply: () => void;
   onDelete: (comment: ReviewComment) => void;
 };
 
-const CommentItem = ({ comment, user, isReply, busy, onEdit, onReply, onDelete }: CommentItemProps) => {
+const CommentItem = ({ comment, user, isReply, busy, writeBlocked, onEdit, onReply, onDelete }: CommentItemProps) => {
   const own = !comment.deleted && Boolean(user && user.id === comment.author?.id);
   const profileImage = getReviewImageUrl(
     own ? user?.profileImage : comment.author?.profileImage,
@@ -68,18 +69,18 @@ const CommentItem = ({ comment, user, isReply, busy, onEdit, onReply, onDelete }
         {!comment.deleted && user && (
           <div className='mt-2 flex flex-wrap items-center gap-3'>
             {!isReply && (
-              <button type='button' disabled={busy} onClick={onReply} className={actionClassName}>
+              <button type='button' disabled={busy || writeBlocked} onClick={onReply} className={actionClassName}>
                 답글 달기
               </button>
             )}
             {own && (
               <>
-                <button type='button' disabled={busy} onClick={onEdit} className={actionClassName}>
+                <button type='button' disabled={busy || writeBlocked} onClick={onEdit} className={actionClassName}>
                   수정
                 </button>
                 <button
                   type='button'
-                  disabled={busy}
+                  disabled={busy || writeBlocked}
                   onClick={() => onDelete(comment)}
                   aria-haspopup='dialog'
                   className={actionClassName}
@@ -99,11 +100,12 @@ type CommentThreadProps = {
   thread: ReviewComment;
   user: User | null;
   busy: boolean;
+  writeBlocked: boolean;
   onAction: (action: CommentAction) => Promise<void>;
   onDelete: (comment: ReviewComment) => void;
 };
 
-const CommentThread = ({ thread, user, busy, onAction, onDelete }: CommentThreadProps) => {
+const CommentThread = ({ thread, user, busy, writeBlocked, onAction, onDelete }: CommentThreadProps) => {
   const [editor, setEditor] = useState<{ type: 'edit'; id: number } | { type: 'reply' } | null>(null);
 
   const renderComment = (comment: ReviewComment, isReply: boolean) => {
@@ -114,7 +116,7 @@ const CommentThread = ({ thread, user, busy, onAction, onDelete }: CommentThread
           user={user}
           label='수정 저장'
           initialContent={comment.content}
-          disabled={busy}
+          disabled={busy || writeBlocked}
           onCancel={() => setEditor(null)}
           onSave={async (content) => {
             await onAction({ type: 'update', commentId: comment.id, content });
@@ -129,6 +131,7 @@ const CommentThread = ({ thread, user, busy, onAction, onDelete }: CommentThread
         user={user}
         isReply={isReply}
         busy={busy}
+        writeBlocked={writeBlocked}
         onEdit={() => setEditor({ type: 'edit', id: comment.id })}
         onReply={() => setEditor({ type: 'reply' })}
         onDelete={onDelete}
@@ -150,7 +153,7 @@ const CommentThread = ({ thread, user, busy, onAction, onDelete }: CommentThread
             key={`reply-${thread.id}`}
             user={user}
             label='답글 등록'
-            disabled={busy}
+            disabled={busy || writeBlocked}
             onCancel={() => setEditor(null)}
             onSave={async (content) => {
               await onAction({ type: 'create', parentId: thread.id, content });

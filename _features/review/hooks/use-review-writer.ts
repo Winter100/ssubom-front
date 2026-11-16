@@ -17,6 +17,7 @@ import { getAuthErrorMessage } from '@/_lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { DRAFT_KEY } from '../lib/draft';
 import { notifyError } from '@/_lib/notifications';
+import { useWithdrawal } from '@/_features/my/hooks/use-withdrawal';
 
 export type ChangeReviewField = <K extends keyof ReviewFields>(
   key: K,
@@ -41,6 +42,7 @@ export const useReviewWriter = ({
   onSubmit,
   submitting = false,
 }: ReviewWriterOptions = {}) => {
+  const withdrawal = useWithdrawal();
   const router = useRouter();
   const [fields, setFields] = useState<ReviewFields>(initialReview ?? emptyFields);
   const [message, setMessage] = useState<string>('');
@@ -182,6 +184,7 @@ export const useReviewWriter = ({
     if (!editor || readingImage || isSubmitting || submissionPending.current) {
       return;
     }
+    if (withdrawal.blocked) return;
     if (!hasRequiredReviewFields(fields)) {
       setError('필수 항목과 평점 범위를 확인해 주세요.');
       return;

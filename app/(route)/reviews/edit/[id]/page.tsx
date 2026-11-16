@@ -2,6 +2,7 @@ import ReviewsQueryBoundary from '@/_features/review/components/reviews-query-bo
 import { isValidReviewId } from '@/_features/review/lib/review-id';
 import { notFound } from 'next/navigation';
 import ReviewEditContent from './review-edit-content';
+import LoadingSpinner from '@/_features/common/components/loading-spinner';
 
 type EditParams = { params: Promise<{ id: string }> };
 
@@ -10,9 +11,7 @@ const Page = ({ params }: EditParams) => (
     notFoundOn404
     forbiddenRedirectTo='/mypage'
     fallback={
-      <p role='status' className='py-20 text-center'>
-        수정할 리뷰를 불러오는 중입니다…
-      </p>
+      <LoadingSpinner />
     }
   >
     <ReviewEditPage params={params} />

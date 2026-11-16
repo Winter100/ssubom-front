@@ -8,12 +8,14 @@ import ReviewsQueryBoundary from '@/_features/review/components/reviews-query-bo
 import MyReviewsFeed from './my-reviews-feed';
 import MyReviewCounts from './my-review-counts';
 import ProfileImageForm from './profile-image-form';
+import WithdrawalSection from './withdrawal-section';
 import LoginLink from '@/_features/auth/components/login-link';
 import { getLoginHref } from '@/_features/auth/lib/login-redirect';
 import ReviewGridSkeleton from '@/_features/review/components/list/review-grid-skeleton';
+import LoadingSpinner from '@/_features/common/components/loading-spinner';
 
 const MyPageContent = () => {
-  const { data: user, error, isPending, isFetching } = useMe();
+  const { data: user, error, isPending } = useMe();
   const router = useRouter();
   const [filters, setFilters] = useState<{ page: number; categoryId?: number }>(
     {
@@ -45,11 +47,7 @@ const MyPageContent = () => {
             </LoginLink>
           </div>
         ) : (
-          <p role='status' className='text-sm text-stone-500'>
-            {!isPending && user === null
-              ? '로그인 페이지로 이동하고 있습니다…'
-              : '로그인 상태를 확인하고 있습니다…'}
-          </p>
+          <LoadingSpinner />
         )}
       </main>
     );
@@ -83,14 +81,6 @@ const MyPageContent = () => {
                   <h2 className='text-sm font-semibold text-stone-800'>
                     계정 정보
                   </h2>
-                  {/* <div className='flex justify-end'>
-                    <button
-                      type='button'
-                      className='cursor-pointer rounded-lg py-1 px-3 text-[11px] text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600'
-                    >
-                      회원 탈퇴
-                    </button>
-                  </div> */}
                 </div>
                 <ProfileImageForm
                   key={user.id}
@@ -129,14 +119,6 @@ const MyPageContent = () => {
                     </dd>
                   </div>
                 </dl>
-                {isFetching && (
-                  <p
-                    role='status'
-                    className='mt-4 text-xs leading-5 text-stone-500'
-                  >
-                    최신 정보를 확인하고 있습니다…
-                  </p>
-                )}
               </div>
               <MyReviewCounts
                 categoryId={filters.categoryId}
@@ -147,6 +129,7 @@ const MyPageContent = () => {
               />
             </div>
           )}
+          <WithdrawalSection key={`withdrawal-${user.id}`} memberId={user.id} />
         </div>
       </section>
       {user && (

@@ -10,7 +10,8 @@ const load = (file, overrides) => {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   new Function('require', 'module', 'exports', source)(
-    (name) => overrides[name] ?? require(name), compiled, compiled.exports);
+    (name) => overrides[name] ?? (name === '@/_features/common/components/loading-spinner'
+      ? { default: 'spinner' } : require(name)), compiled, compiled.exports);
   return compiled.exports;
 };
 test('like and unlike update detail and pages immediately and roll back only the target review', async () => {
@@ -20,7 +21,13 @@ test('like and unlike update detail and pages immediately and roll back only the
   let mutation;
   const requests = [];
   let tokenRevision = 0;
+  let reserved = false;
   const hooks = load('_features/review/hooks/use-review.ts', {
+    '@/_features/my/hooks/use-withdrawal': {
+      useWithdrawal: () => ({ assertAllowed: async () => {
+        if (reserved) throw new Error('탈퇴 예약 중');
+      } }),
+    },
     '@tanstack/react-query': { useQueryClient: () => client, useMutation: (options) => { mutation = options; } },
     '../lib/review-submission': {},
     '../constant/review.keys': { reviewKeys },
@@ -77,14 +84,26 @@ test('like and unlike update detail and pages immediately and roll back only the
     assert.equal(client.getQueryData(detailKey).likeCount, 100);
     assert.equal(client.getQueryData(pageKey).content[0].likeCount, 100);
   }
+  reserved = true;
+  for (const createMutation of [hooks.useInsertLike, hooks.useDeleteLike]) {
+    createMutation('1');
+    const before = client.getQueryData(reviewKeys.detail('1'));
+    const requestCount = requests.length;
+    await assert.rejects(mutation.onMutate(), /탈퇴 예약 중/);
+    assert.deepEqual(client.getQueryData(reviewKeys.detail('1')), before);
+    assert.equal(requests.length, requestCount);
+  }
   client.clear();
 });
 
 test('detail summary displays the server count for members and anonymous visitors, including zero', () => {
-  for (const user of [{ id: 1 }, null]) {
+  for (const [user, reserved] of [[{ id: 1 }, false], [null, false], [{ id: 1 }, true]]) {
     const { default: ReviewHelpful } = load('_features/review/components/detail/review-helpful.tsx', {
       '@/_features/auth/hooks/use-auth': {
         useMe: () => ({ data: user, isPending: false, isError: false }),
+      },
+      '@/_features/my/hooks/use-withdrawal': {
+        useWithdrawal: () => ({ blocked: reserved, data: { scheduledAt: reserved ? '2026-11-18T00:00:00Z' : null } }),
       },
       '@tanstack/react-query': { useIsMutating: () => 0 },
       '../../hooks/use-review': {
@@ -94,10 +113,11 @@ test('detail summary displays the server count for members and anonymous visitor
       '../review-helpful-count': {},
     });
     for (const countLike of [0, 1234]) {
-      const tree = ReviewHelpful({ reviewId: '1', isLike: false, countLike });
+      const tree = ReviewHelpful({ reviewId: '1', isLike: true, countLike });
       const button = tree.props.children[0];
       assert.equal(button.props.children[2].props.children, countLike.toLocaleString('ko-KR'));
-      assert.equal(button.props.disabled, user === null);
+      assert.equal(button.props.disabled, user === null || reserved);
+      assert.equal(button.props['aria-pressed'], user !== null);
     }
   }
 });

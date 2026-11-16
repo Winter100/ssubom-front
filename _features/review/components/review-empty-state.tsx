@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ReviewWriteLink from '@/_features/review/components/review-write-link';
 
 type ReviewEmptyStateProps = {
   variant: 'search' | 'member';
@@ -33,12 +33,11 @@ const ReviewEmptyState = ({ variant, hasFilters, onReset }: ReviewEmptyStateProp
         {variant === 'search' ? '검색·카테고리 초기화' : '카테고리 초기화'}
       </button>
     ) : (
-      <Link
-        href='/reviews/new'
+      <ReviewWriteLink
         className='mt-5 inline-flex rounded-full bg-[#23745b] px-5 py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#185b46] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#23745b]'
       >
         첫 리뷰 쓰기
-      </Link>
+      </ReviewWriteLink>
     )}
   </div>
 );

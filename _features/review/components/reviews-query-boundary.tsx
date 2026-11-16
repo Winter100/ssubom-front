@@ -6,6 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import ReviewListSkeleton from './list/review-list-skeleton';
 import { notFound, useRouter } from 'next/navigation';
 import { ApiError } from '@/_lib/api/api';
+import LoadingSpinner from '@/_features/common/components/loading-spinner';
 
 type ReviewsQueryBoundaryProps = {
   children: ReactNode;
@@ -23,7 +24,7 @@ const ForbiddenRedirect = ({ href }: { href: string }) => {
     router.replace(href);
   }, [router, href]);
 
-  return <p role='status' className='py-20 text-center'>마이페이지로 이동하고 있습니다…</p>;
+  return <LoadingSpinner />;
 };
 
 const ReviewsQueryBoundary = ({

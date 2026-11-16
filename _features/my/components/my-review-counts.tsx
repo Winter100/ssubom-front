@@ -1,5 +1,7 @@
 'use client';
 
+import LoadingSpinner from '@/_features/common/components/loading-spinner';
+
 import CategoryLabel from '@/_features/review/components/category-label';
 import { useMyReviewCounts } from '../hooks/use-my';
 
@@ -49,9 +51,7 @@ const MyReviewCounts = ({
       </div>
       <div className='mt-2 rounded-xl border border-stone-200/80 p-2'>
         {isPending ? (
-          <p role='status' className='text-sm text-stone-500'>
-            작성 개수를 불러오는 중입니다…
-          </p>
+          <LoadingSpinner />
         ) : isError ? (
           <div role='alert' className='text-sm text-stone-500'>
             <p>작성 개수를 불러오지 못했습니다.</p>

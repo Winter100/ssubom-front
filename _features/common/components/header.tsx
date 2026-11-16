@@ -4,6 +4,7 @@ import { project } from '@/_constant/web';
 import { useLogout, useMe } from '@/_features/auth/hooks/use-auth';
 import Image from 'next/image';
 import Link from 'next/link';
+import ReviewWriteLink from '@/_features/review/components/review-write-link';
 import LoginLink from '@/_features/auth/components/login-link';
 
 const Header = () => {
@@ -87,9 +88,7 @@ const HeaderAuthNavigation = () => {
   const { mutate } = useLogout();
 
   return isPending ? (
-    <span role='status' className='px-4 py-2 text-stone-500'>
-      {null}
-    </span>
+    <span aria-label='로그인 상태 확인 중' className='h-8 w-20 rounded-full bg-stone-100 motion-safe:animate-pulse' />
   ) : user ? (
     <details
       className='group relative'
@@ -154,12 +153,12 @@ const HeaderAuthNavigation = () => {
         >
           마이페이지
         </Link>
-        <Link
-          href='/reviews/new'
+        <ReviewWriteLink
+          disableWhenReserved
           className='block rounded-xl px-3 py-2.5 font-medium text-stone-700 transition-colors hover:bg-emerald-50 hover:text-[#23745b] focus-visible:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-[#23745b]'
         >
           리뷰 쓰기
-        </Link>
+        </ReviewWriteLink>
         <button
           type='button'
           onClick={() => mutate()}

@@ -30,6 +30,9 @@ test('configured apiPath values attach tokens only for the registered methods', 
     data: config.headers.get('Authorization') ?? null,
   });
   assert.equal((await api.get(apiPath.me)).data, 'Bearer token');
+  for (const method of ['get', 'post', 'delete']) {
+    assert.equal((await api[method](apiPath.withdrawal)).data, 'Bearer token');
+  }
   assert.equal((await api.post(apiPath.me, { nickName: '변경' })).data, 'Bearer token');
   assert.equal((await api.get(apiPath.myReviewCounts)).data, 'Bearer token');
   assert.equal((await api.post(apiPath.myReviewCounts)).data, null);
@@ -127,26 +130,32 @@ const unauthorized = (config, status = 401) => new axios.AxiosError(
   { status, data: { message: 'failed' }, headers: {}, config, statusText: 'failed' },
 );
 
-const setupRefresh = (refresh) => {
+const setupRefresh = (refresh, logout = async () => ({})) => {
   const store = load('_features/auth/stores/tokenStore.ts');
   store.setAccessToken('old');
   let refreshes = 0;
+  let logouts = 0;
   const { api, ApiError, onAuthExpired } = load('_lib/api/api.ts', {
     '@/_features/auth/stores/tokenStore': store,
     '@/_constant/auth-api-paths': { authApiPaths: [{ method: 'GET', path: 'me' }] },
     axios: { __esModule: true, default: {
       ...axios,
       post: async (url, body, config) => {
-        refreshes++;
-        assert.equal(url, 'auth/refresh');
         assert.equal(body, undefined);
         assert.equal(config.withCredentials, true);
         assert.equal(config.baseURL, api.defaults.baseURL);
+        assert.equal(config.timeout, api.defaults.timeout);
+        if (url === 'auth/logout') {
+          logouts++;
+          return logout(config, store);
+        }
+        refreshes++;
+        assert.equal(url, 'auth/refresh');
         return refresh(config, store);
       },
     } },
   });
-  return { api, ApiError, store, onAuthExpired, refreshes: () => refreshes };
+  return { api, ApiError, store, onAuthExpired, refreshes: () => refreshes, logouts: () => logouts };
 };
 
 test('concurrent protected 401s share refresh and replay requests with the new token', async () => {
@@ -212,6 +221,7 @@ test('all refresh failures clear token and notify logout without replaying the r
     assert.equal(expired, 1);
     assert.equal(sends, 1);
     assert.equal(fixture.refreshes(), 1);
+    assert.equal(fixture.logouts(), 1);
   }
 });
 
@@ -224,6 +234,7 @@ test('failure from an old refresh cannot log out a newer login', async () => {
   fixture.api.defaults.adapter = async (config) => { throw unauthorized(config); };
   await assert.rejects(fixture.api.get('/me'), { status: 503 });
   assert.equal(fixture.store.getAccessToken(), 'new-login');
+  assert.equal(fixture.logouts(), 0);
 });
 
 test('a late old-token 401 reuses the renewed token without a second refresh', async () => {
@@ -277,4 +288,47 @@ test('logout during refresh cannot restore a token even when the previous token 
   await assert.rejects(fixture.api.get('/me'), fixture.ApiError);
   assert.equal(fixture.store.getAccessToken(), null);
   assert.equal(fixture.refreshes(), 1);
+});
+
+test('concurrent refresh failures clear local session immediately and share one failed logout', async () => {
+  const previousStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  const stored = new Map([['hasSession', '1'], ['unrelated', 'keep']]);
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: { removeItem: (key) => stored.delete(key) },
+  });
+  try {
+    let releaseLogout;
+    let logoutStarted;
+    const started = new Promise((resolve) => { logoutStarted = resolve; });
+    const gate = new Promise((resolve) => { releaseLogout = resolve; });
+    const fixture = setupRefresh(
+      async () => { throw unauthorized({}); },
+      async () => {
+        logoutStarted();
+        await gate;
+        throw new axios.AxiosError('offline', 'ERR_NETWORK');
+      },
+    );
+    let expired = 0;
+    fixture.onAuthExpired(() => { expired++; });
+    fixture.api.defaults.adapter = async (config) => { throw unauthorized(config); };
+    const requests = Promise.all([
+      assert.rejects(fixture.api.get('/me'), { status: 401 }),
+      assert.rejects(fixture.api.get('/me'), { status: 401 }),
+    ]);
+    await started;
+    assert.equal(stored.has('hasSession'), false);
+    assert.equal(stored.get('unrelated'), 'keep');
+    assert.equal(fixture.store.getAccessToken(), null);
+    assert.equal(expired, 1);
+    releaseLogout();
+    await requests;
+    assert.equal(fixture.refreshes(), 1);
+    assert.equal(fixture.logouts(), 1);
+    assert.equal(fixture.store.getAccessToken(), null);
+  } finally {
+    if (previousStorage) Object.defineProperty(globalThis, 'localStorage', previousStorage);
+    else delete globalThis.localStorage;
+  }
 });

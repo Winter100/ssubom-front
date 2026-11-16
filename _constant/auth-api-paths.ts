@@ -9,6 +9,9 @@ type AuthApiRoute = {
 };
 
 export const authApiPaths: readonly AuthApiRoute[] = [
+  { method: 'GET', path: apiPath.withdrawal },
+  { method: 'POST', path: apiPath.withdrawal },
+  { method: 'DELETE', path: apiPath.withdrawal },
   { method: 'GET', path: apiPath.me },
   { method: 'POST', path: apiPath.me },
   { method: 'GET', path: apiPath.myReviews },

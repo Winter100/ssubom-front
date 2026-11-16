@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   useReviewWriter,
   type ReviewWriterOptions,
@@ -7,13 +9,39 @@ import {
 import ReviewWriterForm from './review-writer-form';
 import { useCategories } from '../../hooks/use-review';
 import ReviewDetailBackButton from '../detail/review-detail-back-button';
+import WithdrawalNotice from '@/_features/my/components/withdrawal-notice';
+import { useWithdrawal } from '@/_features/my/hooks/use-withdrawal';
+import LoadingSpinner from '@/_features/common/components/loading-spinner';
 
-const ReviewWriter = ({
+const ReviewWriter = (props: ReviewWriterOptions) => {
+  const withdrawal = useWithdrawal();
+  const router = useRouter();
+  const redirectToMyPage = !props.initialReview && Boolean(withdrawal.data?.scheduledAt);
+
+  useEffect(() => {
+    if (redirectToMyPage) router.replace('/mypage');
+  }, [redirectToMyPage, router]);
+
+  if (!props.initialReview && (withdrawal.blocked || redirectToMyPage)) {
+    return (
+      <main className='mx-auto max-w-6xl px-5 py-9 sm:px-10 sm:py-12'>
+        {redirectToMyPage ? (
+          <LoadingSpinner />
+        ) : <WithdrawalNotice />}
+      </main>
+    );
+  }
+
+  return <ReviewWriterContent {...props} />;
+};
+
+const ReviewWriterContent = ({
   initialReview,
   onSubmit,
   submitting,
 }: ReviewWriterOptions) => {
   const isEditing = initialReview !== undefined;
+  const withdrawal = useWithdrawal();
   const {
     fields,
     // message,
@@ -49,6 +77,7 @@ const ReviewWriter = ({
               : '작성한 내용을 확인한 뒤 등록해 주세요.'}
           </p>
         </div>
+        <WithdrawalNotice />
         <ReviewWriterForm
           key={resetVersion}
           fields={fields}
@@ -56,6 +85,7 @@ const ReviewWriter = ({
           editor={editor}
           readingImage={readingImage}
           isSubmitting={isSubmitting}
+          contentBlocked={withdrawal.blocked}
           handleImage={handleImage}
           submitReview={submitReview}
           saveDraft={isEditing ? undefined : saveDraft}

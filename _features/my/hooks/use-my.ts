@@ -1,3 +1,4 @@
+import { useWithdrawal } from './use-withdrawal';
 import { apiPath } from '@/_constant/api-path';
 import { reviewKeys } from '@/_features/review/constant/review.keys';
 import { api } from '@/_lib/api/api';
@@ -52,15 +53,19 @@ const deleteReview = async (reviewId: number, signal?: AbortSignal) => {
   return response.data;
 };
 export const useReviewDelete = () => {
+  const withdrawal = useWithdrawal();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       reviewId,
       signal,
     }: {
       reviewId: number;
       signal?: AbortSignal;
-    }) => deleteReview(reviewId, signal),
+    }) => {
+      await withdrawal.assertAllowed();
+      return deleteReview(reviewId, signal);
+    },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: reviewKeys.all }),
     retry: false,

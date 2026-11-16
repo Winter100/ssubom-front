@@ -5,6 +5,7 @@ import { EditorContent, useEditorState, type Editor } from '@tiptap/react';
 import { countBodyImages, MAX_BODY_IMAGES } from '../../lib/review-limits';
 import EditorToolbar from './editor-toolbar';
 import './review-body-editor.css';
+import LoadingSpinner from '@/_features/common/components/loading-spinner';
 
 type ReviewBodyEditorProps = {
   editor: Editor | null;
@@ -49,9 +50,7 @@ const ReviewBodyEditor = ({
             imageDisabled={imageDisabled}
           />
         ) : (
-          <p className='p-4 text-xs text-stone-400'>
-            편집기를 준비하고 있습니다…
-          </p>
+          <LoadingSpinner />
         )}
         <EditorContent editor={editor} />
         <input

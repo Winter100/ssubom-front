@@ -1,3 +1,4 @@
+import { useWithdrawal } from '@/_features/my/hooks/use-withdrawal';
 import {
   useInfiniteQuery,
   useMutation,
@@ -48,12 +49,14 @@ export const useComments = (reviewId: string) => {
 };
 
 export const useCommentAction = (reviewId: string) => {
+  const withdrawal = useWithdrawal();
   const client = useQueryClient();
   const refresh = (): void => {
     void client.invalidateQueries({ queryKey: commentKeys.lists(reviewId) });
   };
   return useMutation<ReviewComment | undefined, Error, CommentAction>({
     mutationFn: async (action) => {
+      await withdrawal.assertAllowed();
       if (action.type === 'create') {
         return commentApi.create(reviewId, {
           content: action.content,

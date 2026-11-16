@@ -9,6 +9,8 @@ import type { ReviewsParams, ReviewType } from '@/_types/review';
 import { getAuthErrorMessage } from '@/_lib/auth-client';
 import { useMyReviews, useReviewDelete } from '../hooks/use-my';
 import { useRouter } from 'next/navigation';
+import { useWithdrawal } from '../hooks/use-withdrawal';
+import WithdrawalNotice from './withdrawal-notice';
 
 type MyReviewResultsProps = {
   params: ReviewsParams;
@@ -24,6 +26,7 @@ const MyReviewResults = ({
   onReset,
 }: MyReviewResultsProps) => {
   const { data: reviewPage } = useMyReviews(params);
+  const withdrawal = useWithdrawal();
   const deleteDialog = useRef<HTMLDialogElement>(null);
   const [selectedReview, setSelectedReview] = useState<Pick<
     ReviewType,
@@ -42,7 +45,7 @@ const MyReviewResults = ({
     if (!deleting.current) deleteDialog.current?.close();
   };
   const confirmDelete = (): void => {
-    if (!selectedReview || deleting.current) return;
+    if (!selectedReview || deleting.current || withdrawal.blocked) return;
     deleting.current = true;
     deleteReview(
       { reviewId: selectedReview.id },
@@ -66,6 +69,7 @@ const MyReviewResults = ({
 
   return (
     <>
+      <WithdrawalNotice />
       {reviewPage.content.length === 0 ? (
         <ReviewEmptyState variant='member' hasFilters={hasFilters} onReset={onReset} />
       ) : (
@@ -83,6 +87,7 @@ const MyReviewResults = ({
                   <button
                     type='button'
                     title='수정 기능'
+                    disabled={withdrawal.blocked}
                     onClick={() => router.push(`/reviews/edit/${review.id}`)}
                     aria-label={`${review.title} 수정`}
                     className='cursor-pointer rounded-md px-2 py-1.5 text-xs font-medium text-stone-400 hover:bg-stone-50'
@@ -94,7 +99,7 @@ const MyReviewResults = ({
                     type='button'
                     aria-label={`${review.title} 삭제`}
                     aria-haspopup='dialog'
-                    disabled={isDeleting}
+                    disabled={isDeleting || withdrawal.blocked}
                     onClick={() => {
                       resetDelete();
                       setSelectedReview({ id: review.id, title: review.title });
@@ -177,7 +182,7 @@ const MyReviewResults = ({
             </button>
             <button
               type='button'
-              disabled={isDeleting || !selectedReview}
+              disabled={isDeleting || !selectedReview || withdrawal.blocked}
               onClick={confirmDelete}
               className='cursor-pointer rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-wait disabled:opacity-50'
             >
