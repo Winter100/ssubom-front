@@ -41,7 +41,7 @@ test('search target is submitted with the keyword from the left-hand select', ()
       updateParams: (value) => updates.push(value),
     }) },
     '../hooks/use-review': { useCategories: () => ({ data: [] }) },
-    ...Object.fromEntries(['./review-card', './list/review-pagination', './reviews-query-boundary', './list/review-list-skeleton']
+    ...Object.fromEntries(['./review-image-card', './list/review-pagination', './reviews-query-boundary', './list/review-list-skeleton']
       .map((name) => [name, { default: 'section' }])),
   }).default;
   const form = Feed().props.children[0];
@@ -72,7 +72,7 @@ test('reset clears applied filters and unsent form values even when URL defaults
       updateParams: (value) => updates.push(value),
     }) },
     '../hooks/use-review': { useCategories: () => ({ data: [] }) },
-    ...Object.fromEntries(['./review-card', './list/review-pagination', './reviews-query-boundary', './list/review-list-skeleton']
+    ...Object.fromEntries(['./review-image-card', './list/review-pagination', './reviews-query-boundary', './list/review-list-skeleton']
       .map((name) => [name, { default: 'section' }])),
   }).default;
   const tree = Feed();

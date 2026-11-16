@@ -100,6 +100,7 @@ test('only authenticated users mount the protected feed inside the shared query 
     'next/navigation': { useRouter: () => ({ replace: (route) => routes.push(route) }) },
     '@/_features/auth/hooks/use-auth': { useMe: () => ({ data: user, isPending }) },
     '@/_features/auth/components/login-link': { __esModule: true, default: 'LoginLink' },
+    '@/_features/auth/lib/login-redirect': load('_features/auth/lib/login-redirect.ts'),
     '@/_lib/auth-client': { getAuthErrorMessage: (error) => error.message },
     '@/_features/review/components/reviews-query-boundary': boundary,
     './my-reviews-feed': { __esModule: true, default: 'MyReviewsFeed' },
@@ -117,7 +118,7 @@ test('only authenticated users mount the protected feed inside the shared query 
   user = null;
   isPending = false;
   assertNoContent(Page());
-  assert.deepEqual(routes, ['/login']);
+  assert.deepEqual(routes, ['/login?returnTo=%2Fmypage']);
   user = { id: 7, nickname: '독자', email: 'reader@example.com', profileImage: '/profile.png' };
   const profile = findAll(Page(), (node) => node.type === 'ProfileImageForm')[0];
   assert.equal(profile.props.profileImage, user.profileImage);

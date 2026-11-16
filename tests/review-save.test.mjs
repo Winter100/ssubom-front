@@ -39,7 +39,12 @@ test('successful submission resets preserved writer state, editor and files; fai
             if (!(slot in state)) state[slot] = initial;
             return [state[slot], (value) => { state[slot] = typeof value === 'function' ? value(state[slot]) : value; }];
           },
-          useRef: () => files, useEffect: () => {},
+          useRef: (initial) => {
+            const slot = index++;
+            if (!(slot in state)) state[slot] = initial instanceof Map ? files : { current: initial };
+            return state[slot];
+          },
+          useEffect: () => {},
         },
         '@tiptap/react': { useEditor: (options, [version]) => {
           if (editorVersion !== undefined && editorVersion !== version) body = options.content;
@@ -66,8 +71,6 @@ test('successful submission resets preserved writer state, editor and files; fai
       index = 0;
       renderWriter().changeField('image', 'blob:cover');
       index = 0;
-      renderWriter().togglePreview();
-      index = 0;
       renderWriter().submitReview();
       assert.equal(storage.get('draft'), 'saved review');
       assert.deepEqual(navigations, []);
@@ -88,7 +91,6 @@ test('successful submission resets preserved writer state, editor and files; fai
       const revisitedWriter = renderWriter();
       if (succeeds) {
         assert.deepEqual(revisitedWriter.fields, emptyFields);
-        assert.equal(revisitedWriter.preview, null);
         assert.equal(revisitedWriter.resetVersion, 1);
         assert.deepEqual(revisitedWriter.editor.getJSON(), { type: 'doc', content: [{ type: 'paragraph' }] });
         assert.equal(files.current.size, 0);
@@ -96,7 +98,6 @@ test('successful submission resets preserved writer state, editor and files; fai
         assert.equal(revisitedWriter.fields.title, '리뷰');
         assert.equal(revisitedWriter.fields.image, 'blob:cover');
         assert.equal(revisitedWriter.resetVersion, 0);
-        assert.ok(revisitedWriter.preview);
         assert.equal(files.current.size, 1);
       }
     }

@@ -96,6 +96,16 @@ test('profile form saves a changed nickname and image and preserves the draft af
   assert.deepEqual(target, { srcset: '', src: '/default-profile.svg' });
 });
 
+test('profile form removes all whitespace from the nickname before submitting', async () => {
+  const calls = [];
+  const view = setup('/old.png', async (input) => { calls.push(input); });
+  find(view.render(), (node) => node.props?.id === 'profile-nickname').props.onChange({
+    currentTarget: { value: ' 새 이\t름\n\u00a0\u3000' },
+  });
+  await find(view.render(), (node) => node.type === 'form').props.onSubmit({ preventDefault: () => {} });
+  assert.equal(calls[0].nickName, '새이름');
+});
+
 test('profile form rejects a blank nickname and prevents duplicate submissions', async () => {
   let complete;
   let calls = 0;
@@ -123,7 +133,7 @@ test('nickname cooldown disables only the nickname input and submits only the se
   const view = setup('/old.png', async (input) => { calls.push(input); }, '2026-11-10T03:00:00Z');
   const nicknameInput = () => find(view.render(), (node) => node.props?.id === 'profile-nickname');
   assert.equal(nicknameInput().props.disabled, true);
-  assert.match(find(view.render(), (node) => node.props?.id === 'profile-nickname-help').props.children, /6일 0시간 0분/);
+  assert.equal(find(view.render(), (node) => node.props?.id === 'profile-nickname-help'), undefined);
   assert.equal(find(view.render(), (node) => node.props?.type === 'file').props.disabled, false);
   // A draft left over from before the restriction must not be sent with the image.
   nicknameInput().props.onChange({ currentTarget: { value: '보내면 안 되는 이름' } });
@@ -143,21 +153,28 @@ test('nickname editing is available for a first change and exactly seven days af
   }
 });
 
-test('nickname input unlocks when the countdown reaches seven days without reloading', (context) => {
+test('nickname input schedules one unlock at expiry without a recurring timer', (context) => {
   const availableAt = Date.parse('2026-11-11T03:00:00Z');
   let now = availableAt - 1000;
   context.mock.method(Date, 'now', () => now);
   const previousWindow = globalThis.window;
   let tick;
+  let scheduled = 0;
   let cleared = false;
   globalThis.window = {
-    setInterval: (callback) => { tick = callback; return 1; },
-    clearInterval: () => { cleared = true; },
+    setTimeout: (callback, delay) => {
+      scheduled++;
+      assert.equal(delay, 1000);
+      tick = callback;
+      return 1;
+    },
+    clearTimeout: () => { cleared = true; },
   };
   try {
     const view = setup('/old.png', async () => {}, '2026-11-04T03:00:00Z');
     assert.equal(find(view.render(), (node) => node.props?.id === 'profile-nickname').props.disabled, true);
     const cleanup = view.effects.at(-1)();
+    assert.equal(scheduled, 1);
     now = availableAt;
     tick();
     assert.equal(find(view.render(), (node) => node.props?.id === 'profile-nickname').props.disabled, false);

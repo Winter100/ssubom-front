@@ -23,7 +23,7 @@ const load = (file, overrides) => {
   return compiled.exports;
 };
 
-const mount = (mode, respond = async () => {}) => {
+const mount = (mode, respond = async () => {}, returnTo) => {
   const states = [];
   let cursor = 0;
   const ref = { current: false };
@@ -44,7 +44,7 @@ const mount = (mode, respond = async () => {}) => {
     '../hooks/use-auth': { useLogin: () => mutation, useSignup: () => mutation },
 
   }).default;
-  const render = () => { cursor = 0; return Form({ mode }); };
+  const render = () => { cursor = 0; return Form({ mode, returnTo }); };
   const find = (node, match) => {
     if (!node || typeof node !== 'object') return undefined;
     if (Array.isArray(node)) return node.map((child) => find(child, match)).find(Boolean);
@@ -65,6 +65,24 @@ test('invalid form makes no request; errored fields revalidate while editing', a
   assert.equal(form.states[1].email, '');
   const email = form.find(form.render(), (node) => node.type === 'input' && node.props.name === 'email');
   assert.equal(email.props['aria-invalid'], false);
+});
+
+test('signup places nickname after email while login keeps only email and password', () => {
+  for (const [mode, expected] of [
+    ['signup', ['email', 'nickname', 'password', 'passwordConfirm']],
+    ['login', ['email', 'password']],
+  ]) {
+    const form = mount(mode);
+    const names = [];
+    const visit = (node) => {
+      if (!node || typeof node !== 'object') return;
+      if (Array.isArray(node)) return node.forEach(visit);
+      if (node.type === 'input') names.push(node.props.name);
+      visit(node.props?.children);
+    };
+    visit(form.render());
+    assert.deepEqual(names, expected);
+  }
 });
 
 test('signup trims email/nickname, preserves password, omits confirmation and navigates', async () => {
@@ -89,6 +107,21 @@ test('login prevents duplicate pending submissions and navigates home on success
   assert.deepEqual(form.routes, ['/']);
 });
 
+test('successful login returns to the original path, query and anchor; unsafe targets fall back home', async () => {
+  for (const [returnTo, expected] of [
+    ['/reviews/42?categoryId=3#review-comments', '/reviews/42?categoryId=3#review-comments'],
+    ['https://example.com', '/'],
+    ['//example.com', '/'],
+    ['/login', '/'],
+  ]) {
+    const form = mount('login', async () => {}, returnTo);
+    form.change('email', 'reader@example.com');
+    form.change('password', 'password123');
+    await form.submit();
+    assert.deepEqual(form.routes, [expected]);
+  }
+});
+
 test('failure preserves input, shows message, and allows another submission', async () => {
   const form = mount('login', async () => { throw new Error('로그인 실패'); });
   form.change('email', 'reader@example.com');
@@ -102,6 +135,31 @@ test('failure preserves input, shows message, and allows another submission', as
   assert.equal(form.routes.length, 0);
 });
 
+for (const mode of ['login', 'signup']) {
+  test(`${mode} form resets all fields and errors on navigation to the other form`, async () => {
+    const form = mount(mode, async () => { throw new Error('Request failed'); });
+    form.change('email', 'reader@example.com');
+    form.change('password', '12345678');
+    if (mode === 'signup') {
+      form.change('nickname', 'Reader');
+      form.change('passwordConfirm', '12345678');
+    }
+    await form.submit();
+    assert.equal(form.states[2], 'Request failed');
+    form.change('email', 'invalid');
+    await form.submit();
+    assert.ok(form.states[1].email);
+    const button = form.find(form.render(), (node) => node.type === 'button' && node.props.type === 'submit');
+    assert.match(button.props.className, /cursor-pointer/);
+    const link = form.find(form.render(), (node) => node.type === 'a' && node.props.href === (mode === 'signup' ? '/login' : '/signup'));
+    link.props.onNavigate();
+    assert.deepEqual(form.states[0], { email: '', password: '', passwordConfirm: '', nickname: '' });
+    assert.deepEqual(form.states[1], {});
+    assert.equal(form.states[2], '');
+    assert.equal(form.calls.length, 1);
+  });
+}
+
 test('mypage reads shared query data and redirects only a confirmed anonymous user', () => {
   const routes = [];
   let query = { data: undefined, isPending: true, error: null, isFetching: true };
@@ -110,6 +168,8 @@ test('mypage reads shared query data and redirects only a confirmed anonymous us
     'next/link': { __esModule: true, default: 'a' },
     'next/navigation': { useRouter: () => ({ replace: (route) => routes.push(route) }) },
     '@/_features/auth/hooks/use-auth': { useMe: () => query },
+    '@/_features/auth/components/login-link': { __esModule: true, default: 'LoginLink' },
+    '@/_features/auth/lib/login-redirect': load('_features/auth/lib/login-redirect.ts', {}),
     '@/_lib/auth-client': { getAuthErrorMessage: (error) => error.message },
     '@/_features/review/components/reviews-query-boundary': { __esModule: true, default: 'ReviewsQueryBoundary' },
     './my-reviews-feed': { __esModule: true, default: 'MyReviewsFeed' },
@@ -123,5 +183,5 @@ test('mypage reads shared query data and redirects only a confirmed anonymous us
   assert.deepEqual(routes, []);
   query = { data: null, isPending: false, error: null };
   MyPageContent();
-  assert.deepEqual(routes, ['/login']);
+  assert.deepEqual(routes, ['/login?returnTo=%2Fmypage']);
 });

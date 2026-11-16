@@ -12,7 +12,10 @@ const renderHeader = (auth) => {
   ).outputText;
   const overrides = {
     '@/_constant/web': { project: { title: '써봄', header_description: '' } },
-    '@/_features/auth/hooks/use-auth': { useMe: () => ({
+    '@/_features/auth/components/login-link': {
+      __esModule: true, default: (props) => ({ type: 'a', props: { ...props, href: '/login' } }),
+    },
+    '@/_features/auth/hooks/use-auth': { useLogout: () => ({ mutate: () => {} }), useMe: () => ({
       data: auth.user, isPending: auth.status === 'loading', error: null,
     }) },
     'next/link': { __esModule: true, default: 'a' },
