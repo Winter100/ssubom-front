@@ -15,7 +15,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
 
   return (
     <>
-      <div className='grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_270px]'>
+      <div className='grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_260px]'>
         <article className='min-w-0'>
           <header className='mb-8 rounded-2xl border border-stone-200 bg-white p-5 sm:p-7'>
             <p className='text-[10px] font-semibold tracking-[0.16em] text-[#7a8e78]'>
@@ -134,7 +134,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
             </p>
             <h2 className='mt-2 text-lg font-semibold'>진짜 써본 이야기</h2>
             <div
-              className={`mt-5 ${richTextClasses} [&_p]:leading-2 [&_p]:whitespace-pre-wrap [&_p:empty]:min-h-lh`}
+              className={`mt-5 rounded-2xl border border-transparent px-5 py-4 sm:px-7 ${richTextClasses} [&_p]:leading-2 [&_p]:whitespace-pre-wrap [&_p:empty]:min-h-lh`}
             >
               <ReviewBody content={review.content} />
             </div>

@@ -35,6 +35,7 @@ const ReviewBody = ({ content }: { content: JSONContent }) =>
               title={typeof attrs.title === 'string' ? attrs.title : undefined}
               width={width ?? 0}
               height={height ?? 0}
+              unoptimized={width === undefined || height === undefined}
               style={{ width: width ?? 'auto', maxWidth: '100%', height: 'auto' }}
             />
           );
