@@ -39,7 +39,7 @@ export const createExtensions = () => [
 ];
 
 // 에디터 css
-export const richTextClasses = `text-sm leading-2 text-stone-600 break-words
+export const richTextClasses = `text-sm leading-7 text-stone-600 break-words
   [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-[#202a26]
   [&_h3]:mt-7 [&_h3]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[#202a26]
   [&_p]:my-4 [&_strong]:font-semibold [&_strong]:text-[#202a26]
@@ -56,8 +56,8 @@ export const readImage = (file: File): Promise<string> =>
       reject(new Error('JPG, PNG, WebP 이미지를 선택해 주세요.'));
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      reject(new Error('이미지는 한 장당 2MB 이하로 선택해 주세요.'));
+    if (file.size > 5 * 1024 * 1024) {
+      reject(new Error('이미지는 한 장당 5MB 이하로 선택해 주세요.'));
       return;
     }
     const reader = new FileReader();

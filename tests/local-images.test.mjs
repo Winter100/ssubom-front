@@ -35,7 +35,7 @@ test('Blob preview retains original bytes and becomes unavailable after revocati
 
 test('invalid images are rejected before creating preview URLs', () => {
   assert.throws(() => createLocalImage(new File(['x'], 'bad.svg', { type: 'image/svg+xml' })));
-  assert.throws(() => createLocalImage(new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'large.png', { type: 'image/png' })));
+  assert.throws(() => createLocalImage(new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'large.png', { type: 'image/png' })));
 });
 
 test('nested image replacement preserves order, text, attributes and original document', () => {

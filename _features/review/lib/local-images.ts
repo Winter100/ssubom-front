@@ -30,8 +30,8 @@ export const createLocalImage = (file: File): string => {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
     throw new Error('JPG, PNG, WebP 이미지를 선택해 주세요.');
   }
-  if (file.size > 2 * 1024 * 1024) {
-    throw new Error('이미지는 한 장당 2MB 이하로 선택해 주세요.');
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('이미지는 한 장당 5MB 이하로 선택해 주세요.');
   }
   return URL.createObjectURL(file);
 };

@@ -134,7 +134,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
             </p>
             <h2 className='mt-2 text-lg font-semibold'>진짜 써본 이야기</h2>
             <div
-              className={`mt-5 rounded-2xl border border-transparent px-5 py-4 sm:px-7 ${richTextClasses} [&_p]:leading-2 [&_p]:whitespace-pre-wrap [&_p:empty]:min-h-lh`}
+              className={`mt-5 rounded-2xl border border-transparent px-5 py-4 sm:px-7 ${richTextClasses} [&_p]:whitespace-pre-wrap [&_p:empty]:min-h-lh`}
             >
               <ReviewBody content={review.content} />
             </div>

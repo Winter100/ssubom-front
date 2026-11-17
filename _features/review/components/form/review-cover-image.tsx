@@ -48,7 +48,7 @@ const ReviewCoverImage = ({
                 직접 찍은 상품 사진을 올려주세요
               </span>
               <span className='mt-2 text-[10px] text-stone-400'>
-                JPG, PNG, WebP · 최대 2MB
+                JPG, PNG, WebP · 최대 5MB
               </span>
             </>
           )}

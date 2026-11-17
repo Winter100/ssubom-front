@@ -149,11 +149,12 @@ export const useReviewWriter = ({
         throw new Error('본문에 이미지를 넣지 못했습니다.');
       }
     } catch (cause: unknown) {
-      setError(
+      const message =
         cause instanceof Error
           ? cause.message
-          : '이미지를 불러오지 못했습니다.',
-      );
+          : '이미지를 불러오지 못했습니다.';
+      setError(message);
+      notifyError(message);
     } finally {
       setReadingImage(false);
     }

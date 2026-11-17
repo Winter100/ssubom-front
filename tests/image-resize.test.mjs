@@ -7,6 +7,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getImageProps } from 'next/image.js';
 import ts from 'typescript';
+import { compile } from '@tailwindcss/node';
 
 const require = createRequire(import.meta.url);
 const loaded = { exports: {} };
@@ -23,6 +24,23 @@ new Function('require', 'module', 'exports', source)(
   (name) => name === './review-limits' ? limits.exports : require(name), loaded, loaded.exports,
 );
 const extensions = loaded.exports.createExtensions();
+
+test('review body line height exceeds the font size without a cramped paragraph override', async () => {
+  const classes = loaded.exports.richTextClasses.split(' ');
+  assert.ok(classes.includes('leading-7'));
+  const detail = fs.readFileSync('_features/review/components/detail/review-detail-container.tsx', 'utf8');
+  assert.ok(detail.includes('${richTextClasses}'));
+  assert.doesNotMatch(detail, /\[&_p\]:leading-/);
+
+  const compiler = await compile('@import "tailwindcss";', {
+    base: process.cwd(), onDependency: () => {},
+  });
+  const css = compiler.build(classes);
+  const spacing = Number(css.match(/--spacing:\s*([\d.]+)rem/)[1]);
+  const fontSize = Number(css.match(/--text-sm:\s*([\d.]+)rem/)[1]);
+  assert.match(css, /\.leading-7\s*\{[^}]*line-height: calc\(var\(--spacing\) \* 7\)/);
+  assert.ok(spacing * 7 > fontSize, 'wrapped lines must have room for the glyphs');
+});
 
 test('detail keeps saved image dimensions instead of filling the body width', () => {
   const compiled = ts.transpileModule(

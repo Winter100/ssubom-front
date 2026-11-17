@@ -44,8 +44,7 @@ const ReviewWriterContent = ({
   const withdrawal = useWithdrawal();
   const {
     fields,
-    // message,
-    // error,
+    error,
     readingImage,
     isSubmitting,
     resetVersion,
@@ -78,6 +77,11 @@ const ReviewWriterContent = ({
           </p>
         </div>
         <WithdrawalNotice />
+        {error && (
+          <p role='alert' className='mb-4 text-sm text-red-700'>
+            {error}
+          </p>
+        )}
         <ReviewWriterForm
           key={resetVersion}
           fields={fields}

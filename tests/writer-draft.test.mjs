@@ -46,7 +46,7 @@ test('oversized fields and invalid cover image sources are rejected', () => {
 
 test('file type and size are checked before reading image data', async () => {
   await assert.rejects(readImage({ type: 'image/svg+xml', size: 20 }));
-  await assert.rejects(readImage({ type: 'image/png', size: 2 * 1024 * 1024 + 1 }));
+  await assert.rejects(readImage({ type: 'image/png', size: 5 * 1024 * 1024 + 1 }));
 });
 
 test('Tiptap class attributes contain no newlines or empty class tokens', () => {
