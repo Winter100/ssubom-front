@@ -30,16 +30,24 @@ export const getWithdrawal = async (
   (await api.get<WithdrawalStatus>(apiPath.withdrawal, { signal })).data;
 
 export const useWithdrawal = () => {
+  const { data: user, isPending } = useMe();
+  return useWithdrawalForMember(user?.id, isPending);
+};
+
+export const useWithdrawalForMember = (
+  memberId: number | undefined,
+  checkingUser = false,
+) => {
   const hydrated = useSyncExternalStore(
     subscribe,
     getClientSnapshot,
     getServerSnapshot,
   );
-  const { data: user, isPending: checkingUser } = useMe();
+  const hasMember = memberId !== undefined;
   const queryClient = useQueryClient();
   const status = useQuery({
-    queryKey: authKeys.withdrawal(user?.id ?? 0),
-    enabled: Boolean(user),
+    queryKey: authKeys.withdrawal(memberId ?? 0),
+    enabled: hasMember,
     queryFn: async ({ signal }) => {
       try {
         return await getWithdrawal(signal);
@@ -57,7 +65,7 @@ export const useWithdrawal = () => {
   return {
     ...status,
     data: hydrated ? status.data : undefined,
-    isPending: !hydrated || checkingUser || Boolean(user && status.isPending),
+    isPending: !hydrated || checkingUser || (hasMember && status.isPending),
     isError: hydrated && status.isError,
     assertAllowed: async (): Promise<void> => {
       const result = await status.refetch();
@@ -69,10 +77,7 @@ export const useWithdrawal = () => {
     blocked:
       !hydrated ||
       checkingUser ||
-      Boolean(
-        user &&
-        (status.isPending || status.isError || status.data?.scheduledAt),
-      ),
+      (hasMember && Boolean(status.isPending || status.isError || status.data?.scheduledAt)),
   };
 };
 

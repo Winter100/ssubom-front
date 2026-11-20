@@ -44,6 +44,11 @@ export type ReviewsPage = {
   totalPages: number;
 };
 
+export type ReviewDetail = ReviewType & {
+  isReported?: boolean;
+  isReportedToday?: boolean;
+};
+
 export type ReviewsParams = Pick<ReviewSearchParams, 'page' | 'size'> &
   Partial<Omit<ReviewSearchParams, 'page' | 'size'>>;
 

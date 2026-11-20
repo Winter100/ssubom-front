@@ -159,6 +159,14 @@ const HeaderAuthNavigation = () => {
         >
           리뷰 쓰기
         </ReviewWriteLink>
+        {user.role === 'ADMIN' && (
+          <Link
+            href='/admin'
+            className='block rounded-xl px-3 py-2.5 font-medium text-stone-700 hover:bg-emerald-50 hover:text-[#23745b] focus-visible:outline-2 focus-visible:outline-[#23745b]'
+          >
+            관리자
+          </Link>
+        )}
         <button
           type='button'
           onClick={() => mutate()}

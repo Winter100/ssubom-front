@@ -1,5 +1,8 @@
 import { ReviewsParams } from '@/_types/review';
 
+export const adminReviewKey = ['adminReviews'] as const;
+export const reportTypeKey = ['reviewReportTypes'] as const;
+
 export const reviewKeys = {
   all: ['reviews'] as const,
   paginations: () => [...reviewKeys.all, 'paginations'],

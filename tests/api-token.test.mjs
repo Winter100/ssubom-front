@@ -68,6 +68,29 @@ test('configured apiPath values attach tokens only for the registered methods', 
   assert.equal((await api.post(`${apiPath.reviews}/42/comments/7`)).data, null);
   assert.equal((await api.delete(`${apiPath.reviews}/invalid`)).data, null);
   assert.equal((await api.delete(apiPath.reviews)).data, null);
+  for (const [method, path] of [
+    ['get', apiPath.reviewReportTypes],
+    ['post', `${apiPath.reviews}/42/reports`],
+    ['get', apiPath.adminReviews],
+    ['get', apiPath.adminCategories],
+    ['post', apiPath.adminCategories],
+    ['patch', `${apiPath.adminCategories}/42`],
+    ['delete', `${apiPath.adminCategories}/42`],
+    ['put', apiPath.adminCategoryOrder],
+    ['delete', `${apiPath.adminReviews}/42`],
+    ['get', apiPath.adminReviewReports],
+    ['get', apiPath.adminReviewReportTypes],
+    ['post', apiPath.adminReviewReportTypes],
+    ['put', `${apiPath.adminReviewReportTypes}/7`],
+    ['put', apiPath.adminReviewReportTypeOrder],
+  ]) {
+    assert.equal((await api[method](path)).data, 'Bearer token', `${method} ${path}`);
+  }
+  assert.equal((await api.get('reviews/42/reports')).data, null);
+  assert.equal((await api.put('admin/review-report-types/0')).data, null);
+  assert.equal((await api.get(apiPath.adminReviewReportTypeOrder)).data, null);
+  assert.equal((await api.patch('admin/categories/order')).data, null);
+  assert.equal((await api.put('admin/categories/42')).data, null);
 });
 
 test('api attaches the latest stored token, preserves explicit authorization and omits cleared tokens', async () => {

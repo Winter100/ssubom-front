@@ -139,7 +139,7 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const original = error.config as RetryConfig | undefined;
 
-    if (error.response?.status === 401 && original && requiresAuth(original)) {
+    if (error.response?.status === 401 && original && !original.signal?.aborted && requiresAuth(original)) {
       const sentAuthorization = original.headers.get('Authorization');
       const currentToken = getAccessToken();
       if (original._retry) {

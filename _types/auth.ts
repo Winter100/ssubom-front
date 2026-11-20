@@ -1,5 +1,6 @@
 export type User = {
   id: number;
+  role?: 'USER' | 'ADMIN';
   email: string;
   nickname: string;
   nicknameChangedAt: string | null;

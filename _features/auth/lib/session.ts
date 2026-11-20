@@ -1,8 +1,28 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { authKeys } from '../constant/auth.keys';
 import { setAccessToken } from '../stores/tokenStore';
-import { reviewKeys } from '@/_features/review/constant/review.keys';
-import type { ReviewsPage, ReviewType } from '@/_types/review';
+import { adminReviewKey, reportTypeKey, reviewKeys } from '@/_features/review/constant/review.keys';
+import type { ReviewDetail, ReviewsPage } from '@/_types/review';
+
+let reportSession = new AbortController();
+
+export const getReportSessionSignal = (): AbortSignal => reportSession.signal;
+
+export const clearReportQueries = (queryClient: QueryClient, anonymous = false): void => {
+  reportSession.abort();
+  reportSession = new AbortController();
+  queryClient.removeQueries({ queryKey: adminReviewKey });
+  queryClient.removeQueries({ queryKey: reportTypeKey });
+  void queryClient.cancelQueries({ queryKey: reviewKeys.details() });
+  queryClient.setQueriesData<ReviewDetail>(
+    { queryKey: reviewKeys.details() },
+    (review) => review && typeof review.isReportedToday === 'boolean' ? {
+      ...review,
+      isReported: anonymous ? false : undefined,
+      isReportedToday: anonymous ? false : undefined,
+    } : review,
+  );
+};
 
 export const clearSession = (queryClient: QueryClient): void => {
   setAccessToken(null);
@@ -12,7 +32,8 @@ export const clearSession = (queryClient: QueryClient): void => {
   queryClient.setQueriesData({ queryKey: authKeys.all }, null);
   // 이전 로그인 상태의 응답이 좋아요 표시를 되살리지 않도록 조회를 취소합니다.
   void queryClient.cancelQueries({ queryKey: reviewKeys.all });
-  queryClient.setQueriesData<ReviewType>(
+  clearReportQueries(queryClient, true);
+  queryClient.setQueriesData<ReviewDetail>(
     { queryKey: reviewKeys.details() },
     (review) => review ? { ...review, isLike: false } : review,
   );

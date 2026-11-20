@@ -133,6 +133,7 @@ test('login and member lookup turn stored profile image keys into display URLs',
     '../constant/auth.keys': { authKeys: { me: () => ['auth', 'me'] } },
     '../stores/tokenStore': { getAccessToken: () => 'token' },
     '../lib/session': {},
+    '@/_features/review/constant/review.keys': load('_features/review/constant/review.keys.ts', {}),
     '@/_constant/api-path': { apiPath: { login: 'auth/login', me: 'member' } },
     '@/_lib/api/api': { api: {
       post: async () => ({ data: { user, accessToken: 'token' } }),

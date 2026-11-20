@@ -9,5 +9,12 @@ export const apiPath = {
   myReviewCounts: 'member/count',
   categories: 'categories',
   reviews: 'reviews',
+  reviewReportTypes: 'review-report-types',
+  adminReviews: 'admin/reviews',
+  adminCategories: 'admin/categories',
+  adminCategoryOrder: 'admin/categories/order',
+  adminReviewReports: 'admin/reviews/reports',
+  adminReviewReportTypes: 'admin/review-report-types',
+  adminReviewReportTypeOrder: 'admin/review-report-types/order',
   presignedImages: 'storage/presigned-url',
 } as const;

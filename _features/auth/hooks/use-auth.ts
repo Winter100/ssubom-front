@@ -8,7 +8,8 @@ import type {
 import { authKeys } from '../constant/auth.keys';
 import { api, ApiError } from '@/_lib/api/api';
 import { getAccessToken, setAccessToken } from '../stores/tokenStore';
-import { clearSession } from '../lib/session';
+import { clearReportQueries, clearSession } from '../lib/session';
+import { reviewKeys } from '@/_features/review/constant/review.keys';
 import { apiPath } from '@/_constant/api-path';
 import { getReviewImageUrl } from '@/_features/review/lib/review-image';
 
@@ -33,6 +34,7 @@ export const useLogin = () => {
     mutationFn: (input: LoginInput) => login(input),
     onSuccess: async (auth: LoginResponse) => {
       await queryClient.cancelQueries({ queryKey: authKeys.all });
+      clearReportQueries(queryClient);
       // 로그인 힌트 플래그
       localStorage.setItem('hasSession', '1');
 
@@ -41,6 +43,7 @@ export const useLogin = () => {
 
       // 유저 정보 상태 세팅
       queryClient.setQueryData(authKeys.me(), auth.user);
+      void queryClient.invalidateQueries({ queryKey: reviewKeys.details() });
     },
     retry: false,
     gcTime: 0,

@@ -9,9 +9,19 @@ import ReviewBody from './review-body';
 import CategoryLabel from '../category-label';
 import ReviewComments from './review-comments';
 import ReviewHelpful from './review-helpful';
+import ReviewReport from './review-report';
+import { ApiError } from '@/_lib/api/api';
+import { useMe } from '@/_features/auth/hooks/use-auth';
+import ReviewDetailSkeleton from './review-detail-skeleton';
 
 const ReviewDetailContainer = ({ id }: { id: string }) => {
-  const { data: review } = useDetailReview(id);
+  const { isPending } = useMe();
+  return isPending ? <ReviewDetailSkeleton /> : <ReviewDetailContent id={id} />;
+};
+
+const ReviewDetailContent = ({ id }: { id: string }) => {
+  const { data: review, error } = useDetailReview(id);
+  if (error instanceof ApiError && error.status === 404) throw error;
 
   return (
     <>
@@ -94,6 +104,7 @@ const ReviewDetailContainer = ({ id }: { id: string }) => {
                     {review.createdAt.slice(0, 10).replaceAll('-', '.')}
                   </time>
                 </div>
+                <ReviewReport review={review} />
               </div>
             </div>
           </header>

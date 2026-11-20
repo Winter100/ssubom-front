@@ -8,6 +8,7 @@ import { createReview, updateReview } from '../lib/review-submission';
 import {
   CategoryType,
   CreateReviewInput,
+  ReviewDetail,
   ReviewsPage,
   ReviewsParams,
   ReviewType,
@@ -39,12 +40,13 @@ export const reviewApi = {
     });
     return response.data;
   },
-  getDetail: async (reviewId: string) => {
+  getDetail: async (reviewId: string, signal?: AbortSignal) => {
     if (!isValidReviewId(reviewId)) {
       throw new Error('올바른 리뷰 ID가 아닙니다.');
     }
-    const response = await api.get<ReviewType>(
+    const response = await api.get<ReviewDetail>(
       `${apiPath.reviews}/${reviewId}`,
+      { signal },
     );
     return response.data;
   },
@@ -88,7 +90,7 @@ export const useReviews = ({
 export const useDetailReview = (reviewId: string) => {
   return useSuspenseQuery({
     queryKey: reviewKeys.detail(reviewId),
-    queryFn: () => reviewApi.getDetail(reviewId),
+    queryFn: ({ signal }) => reviewApi.getDetail(reviewId, signal),
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
